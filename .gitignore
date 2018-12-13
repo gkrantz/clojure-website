@@ -1,0 +1,6 @@
+Leiningen.gitignore
+*.xml
+*.log
+*.figwheel-compile-stamp
+resources/public/js/
+target/
