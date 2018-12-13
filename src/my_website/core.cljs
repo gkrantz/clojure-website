@@ -6,10 +6,17 @@
 
 (defonce state-atom (atom nil))
 
+(rum/defc app [state]
+  [:div
+   (banner/component state (fn [new-name]
+                             (swap! state-atom (fn [old-state]
+                                                 (assoc old-state :name new-name)))))
+   (banner/component state (fn [new-name]
+                             (swap! state-atom (fn [old-state]
+                                                 (assoc old-state :name new-name)))))])
+
 (defn render! [state]
-  (rum/mount (banner/component state (fn [new-name]
-                                       (swap! state-atom (fn [old-state]
-                                                           (assoc old-state :name new-name)))))
+  (rum/mount (app state)
              (js/document.getElementById "app")))
 
 (when (nil? (deref state-atom))
