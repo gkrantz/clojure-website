@@ -1,6 +1,7 @@
 (ns my-website.core
   (:require [my-website.components.banner :as banner]
             [my-website.components.login-form :as login-form]
+            [my-website.components.side-nav :as side-nav]
             [rum.core :as rum]))
 
 (enable-console-print!)
@@ -15,7 +16,8 @@
    (banner/component state [:name] (fn [new-name]
                                      (swap! state-atom (fn [old-state]
                                                          (assoc old-state :name new-name)))))
-   (login-form/component)])
+   (login-form/component)
+   (side-nav/component)])
 
 (defn render! [state]
   (rum/mount (app state)

@@ -10,7 +10,7 @@
                           :height           "5px"
                           :background-color "#333"
                           :margin           "6px 0"
-                          :transition       "0.4s"}]
+                          :transition       "0.5s"}]
     [:div {:style    {:cursor "pointer"}
            :on-click (fn [_] (if (deref closed)
                                (do (reset! closed false)
