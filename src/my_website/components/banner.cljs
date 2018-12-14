@@ -1,9 +1,8 @@
 (ns my-website.components.banner
   (:require [rum.core :as rum]))
 
-(defonce input-atom (atom "Enter name here..."))
-
 (rum/defc component [app-state update-name-fn]
+  (let [input-atom (atom "Enter name here...")]
   [:div {:style {:background-color "black"
                  :float            "left"
                  ;;:border-radius    "5px"
@@ -24,4 +23,4 @@
              :value     (deref input-atom)
              :on-change (fn [x] (reset! input-atom (.. x -target -value)))}]
     [:button {:on-click (fn [_] (update-name-fn (deref input-atom)))}
-     "Send"]]])
+     "Send"]]]))
