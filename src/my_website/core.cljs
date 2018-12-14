@@ -8,12 +8,12 @@
 
 (rum/defc app [state]
   [:div
-   (banner/component state (fn [new-name]
-                             (swap! state-atom (fn [old-state]
-                                                 (assoc old-state :name new-name)))))
-   (banner/component state (fn [new-name]
-                             (swap! state-atom (fn [old-state]
-                                                 (assoc old-state :name new-name)))))])
+   (banner/component state [:name] (fn [new-name]
+                                   (swap! state-atom (fn [old-state]
+                                                       (assoc old-state :name new-name)))))
+   (banner/component state [:name] (fn [new-name]
+                                   (swap! state-atom (fn [old-state]
+                                                       (assoc old-state :name new-name)))))])
 
 (defn render! [state]
   (rum/mount (app state)
