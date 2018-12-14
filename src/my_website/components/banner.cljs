@@ -1,8 +1,9 @@
 (ns my-website.components.banner
   (:require [rum.core :as rum]))
 
-(rum/defcs hamburger-button < (rum/local true ::closed)
-                              "A menu button."
+(rum/defcs hamburger-button
+  "A menu button."
+  < (rum/local true ::closed)
   [local-state {on-open :on-open on-close :on-close}]
   (let [closed (::closed local-state)
         bar-closed-style {:width            "35px"
@@ -26,18 +27,18 @@
                    :key   bar}])
           (range 0 3))]))
 
-(rum/defcs component < (rum/local "Enter name here..." ::name)
-                       "A banner component."
+(rum/defcs component
+  "A banner component."
+  < (rum/local "Enter name here..." ::name)
   [local-state app-state path-to-name-in-state update-name-fn]
   (let [input-atom (::name local-state)]
     [:div {:style {:background-color "black"
-                   :float            "left"
                    ;;:border-radius    "5px"
-                   :border-bottom    "5px solid #CCC"
+                   :border-bottom    "3px solid #222"
                    :height           40
+                   :margin 0
                    :width            "100%"
-                   :position         "relative"
-                   :display          "inline-block"}}
+                   :position         "relative"}}
      [:div {:style {:float          "left"
                     :color          "white"
                     :font-family    "Comic Sans MS, cursive, sans-serif"
@@ -63,7 +64,7 @@
                :on-change (fn [x] (reset! input-atom (.. x -target -value)))}]
       [:button {:style    {:background-color "#4CAF50"
                            :color            "white"
-                           :margin           "3px"
+                           :margin           "6px 2px"
                            :padding          "6px 6px"
                            :border-radius    "4px"
                            :border           "none"

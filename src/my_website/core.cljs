@@ -1,5 +1,6 @@
 (ns my-website.core
   (:require [my-website.components.banner :as banner]
+            [my-website.components.login-form :as login-form]
             [rum.core :as rum]))
 
 (enable-console-print!)
@@ -9,11 +10,12 @@
 (rum/defc app [state]
   [:div
    (banner/component state [:name] (fn [new-name]
-                                   (swap! state-atom (fn [old-state]
-                                                       (assoc old-state :name new-name)))))
+                                     (swap! state-atom (fn [old-state]
+                                                         (assoc old-state :name new-name)))))
    (banner/component state [:name] (fn [new-name]
-                                   (swap! state-atom (fn [old-state]
-                                                       (assoc old-state :name new-name)))))])
+                                     (swap! state-atom (fn [old-state]
+                                                         (assoc old-state :name new-name)))))
+   (login-form/component)])
 
 (defn render! [state]
   (rum/mount (app state)
