@@ -2,20 +2,22 @@
   (:require [my-website.components.banner :as banner]
             [my-website.components.login-form :as login-form]
             [my-website.components.side-nav :as side-nav]
+            [my-website.events :refer [events]]
             [rum.core :as rum]))
 
 (enable-console-print!)
 
 (defonce state-atom (atom nil))
 
+(defn handle-event
+  "Handles an event triggered by a component."
+  [{name :name data :data}]
+  (as-> (get events name) $
+        ($ state-atom data)))
+
 (rum/defc app [state]
   [:div
-   (banner/component state [:name] (fn [new-name]
-                                     (swap! state-atom (fn [old-state]
-                                                         (assoc old-state :name new-name)))))
-   (banner/component state [:name] (fn [new-name]
-                                     (swap! state-atom (fn [old-state]
-                                                         (assoc old-state :name new-name)))))
+   (banner/component state handle-event)
    (login-form/component)
    (side-nav/component)])
 
@@ -29,7 +31,7 @@
              (fn [_ _ _ state]
                (render! state)))
 
-  (reset! state-atom {:name "User"}))
+  (reset! state-atom {:user {:name "User"}}))
 
 (defn on-js-reload []
   (render! (deref state-atom)))

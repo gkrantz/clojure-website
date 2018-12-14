@@ -30,13 +30,13 @@
 (rum/defcs component
   "A banner component."
   < (rum/local "Enter name here..." ::name)
-  [local-state app-state path-to-name-in-state update-name-fn]
+  [local-state app-state trigger-event]
   (let [input-atom (::name local-state)]
     [:div {:style {:background-color "black"
                    ;;:border-radius    "5px"
                    :border-bottom    "3px solid #222"
                    :height           40
-                   :margin 0
+                   :margin           0
                    :width            "100%"
                    :position         "relative"}}
      [:div {:style {:float          "left"
@@ -49,7 +49,7 @@
                     :display        "flex"
                     :align-items    "center"
                     :height         "100%"}}
-      "Welcome to my website, " (str (get-in app-state path-to-name-in-state)) "!"]
+      "Welcome to my website, " (str (get-in app-state [:user :name])) "!"]
      [:div {:style {:float       "left"
                     :margin-left 15
                     :width       "auto"
@@ -70,7 +70,8 @@
                            :border           "none"
                            :cursor           "pointer"
                            :height           "70%"}
-                :on-click (fn [_] (update-name-fn (deref input-atom)))}
+                :on-click (fn [_] (trigger-event {:name :rename-user
+                                                  :data {:name (deref input-atom)}}))}
        "Send"]]
      [:div {:style {:float        "right"
                     :margin-right "5px"
