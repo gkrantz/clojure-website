@@ -73,5 +73,6 @@
        "Send"]]
      [:div {:style {:float        "right"
                     :margin-right "5px"
-                    :display      "inline-block"}} (hamburger-button {:on-open  (fn [] (println "opened"))
-                                                                      :on-close (fn [] (println "closed"))})]]))
+                    :display      "inline-block"}}
+      (hamburger-button {:on-open  (fn [] (println "opened"))
+                         :on-close (fn [] (println "closed"))})]]))
