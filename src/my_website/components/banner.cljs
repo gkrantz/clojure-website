@@ -3,7 +3,7 @@
 
 (rum/defcs hamburger-button < (rum/local true ::closed)
                               "A menu button."
-  [local-state on-open on-close]
+  [local-state {on-open :on-open on-close :on-close}]
   (let [closed (::closed local-state)
         bar-closed-style {:width            "35px"
                           :height           "5px"
@@ -11,8 +11,11 @@
                           :margin           "6px 0"
                           :transition       "0.4s"}]
     [:div {:style    {:cursor "pointer"}
-           :on-click (fn [_] (swap! closed not)
-                       (println (deref closed)))}
+           :on-click (fn [_] (if (deref closed)
+                               (do (reset! closed false)
+                                   (when (not (nil? on-open)) (on-open)))
+                               (do (reset! closed true)
+                                   (when (not (nil? on-close)) (on-close)))))}
      (map (fn [bar]
             [:div {:style (if (deref closed)
                             bar-closed-style
@@ -70,4 +73,5 @@
        "Send"]]
      [:div {:style {:float        "right"
                     :margin-right "5px"
-                    :display      "inline-block"}} (hamburger-button)]]))
+                    :display      "inline-block"}} (hamburger-button {:on-open  (fn [] (println "opened"))
+                                                                      :on-close (fn [] (println "closed"))})]]))
