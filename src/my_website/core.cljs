@@ -20,9 +20,8 @@
              (js/document.getElementById "app")))
 
 (when (nil? (deref state-atom))
-
   (add-watch state-atom
-             :game-loop
+             :state-watch
              (fn [_ _ _ state]
                (render! state)))
 
