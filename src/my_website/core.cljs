@@ -1,7 +1,7 @@
 (ns my-website.core
   (:require [my-website.components.minimalistic-banner :as banner]
             [my-website.components.login-form :as login-form]
-            [my-website.components.side-nav :as side-nav]
+            [my-website.components.links :as links]
             [my-website.events :refer [events]]
             [my-website.js-interops :refer [get-url-path]]
             [rum.core :as rum]))
@@ -25,9 +25,9 @@
                   :justify-content "center"
                   :text-align      "center"}}
     (case (:location state)
-           "Home" (login-form/component)
-           "Links" [:div "links component placeholder"]
-           "Games" [:div "games component placeholder"])]])
+      "Home" (login-form/component)
+      "Links" (links/component)
+      "Games" [:div "games component placeholder"])]])
 
 (defn render! [state]
   (rum/mount (app state)

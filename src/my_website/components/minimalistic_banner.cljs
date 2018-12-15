@@ -14,7 +14,7 @@
        (fn [loc] [:div {:key      (str loc)
                         :style    {:display   "inline-block"
                                    :margin    30
-                                   :font-size "20px"
+                                   :font-size "30px"
                                    :cursor    "pointer"
                                    :color     (if (= loc current-location)
                                                 "#EFEFEF"
