@@ -1,8 +1,9 @@
 (ns my-website.core
-  (:require [my-website.components.banner :as banner]
+  (:require [my-website.components.minimalistic-banner :as banner]
             [my-website.components.login-form :as login-form]
             [my-website.components.side-nav :as side-nav]
             [my-website.events :refer [events]]
+            [my-website.js-interops :refer [get-url-path]]
             [rum.core :as rum]))
 
 (enable-console-print!)
@@ -12,8 +13,10 @@
 (defn handle-event
   "Handles an event triggered by a component."
   [{name :name data :data}]
+  (println (str "handling event: " name ", with data: " data))
   (as-> (get events name) $
-        ($ state-atom data)))
+        (when (not (nil? $))
+          ($ state-atom data))))
 
 (rum/defc app [state]
   [:div
@@ -31,7 +34,8 @@
              (fn [_ _ _ state]
                (render! state)))
 
-  (reset! state-atom {:user {:name "User"}}))
+  (reset! state-atom {:user     {:name "User"}
+                      :location "Home"}))
 
 (defn on-js-reload []
   (render! (deref state-atom)))
