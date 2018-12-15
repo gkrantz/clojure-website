@@ -21,8 +21,13 @@
 (rum/defc app [state]
   [:div
    (banner/component state handle-event)
-   (login-form/component)
-   (side-nav/component)])
+   [:div {:style {:align-items     "center"
+                  :justify-content "center"
+                  :text-align      "center"}}
+    (case (:location state)
+           "Home" (login-form/component)
+           "Links" [:div "links component placeholder"]
+           "Games" [:div "games component placeholder"])]])
 
 (defn render! [state]
   (rum/mount (app state)
