@@ -2,7 +2,9 @@
   (:require [clojure.test :refer [is]]
             [tower-defence.definitions :refer [get-definition]]
             [tower-defence.pathfinding :refer [find-path]]
-            [tower-defence.helpers :refer [force-add-tower
+            [tower-defence.helpers :refer [calculate-angle
+                                           calculate-middle-of-square
+                                           force-add-tower
                                            generate-id
                                            get-end
                                            get-gold
@@ -52,7 +54,9 @@
                 (get-tower-locations state)) $
         (find-path (get-height state)
                    (get-width state)
-                   $)))
+                   $
+                   (get-start state)
+                   (get-end state))))
 
 (defn can-build-tower?
   {:test (fn []
@@ -98,8 +102,46 @@
   "Builds a tower without checks."
   {:test (fn [] (as-> (create-empty-state) $
                       (build-tower $ "Basic" [1 1])
-                      (do (is (= (:towers $) {[1 1] (create-tower "Basic" :id "t1" :x 1 :y 1)}))
-                          (is (= (get-gold $) 90)))))}
+                      (do (is (= (get-gold $) 90)))))}
   [state name [y x]]
   (-> (reduce-gold state (get-tower-cost name))
       (force-add-tower (create-tower name :id (generate-id "t") :y y :x x) [y x])))
+
+(defn- create-waypoint
+  [fromy fromx [toy tox]]
+  {:x     (calculate-middle-of-square tox)
+   :y     (calculate-middle-of-square toy)
+   :angle (calculate-angle fromy fromx toy tox)})
+
+(defn add-waypoints-to-state
+  {:test (fn []
+           (is (= (-> (create-empty-state)
+                      (add-waypoints-to-state)
+                      (:waypoints))
+                  {0 {:angle (calculate-angle 1 0 0 1)
+                      :x     (calculate-middle-of-square 11)
+                      :y     (calculate-middle-of-square 0)}}))
+           (is (= (-> (create-game {:start  [0 0]
+                                    :end    [1 1]
+                                    :towers {[0 1] "dummy"}
+                                    :width  2
+                                    :height 2})
+                      (add-waypoints-to-state)
+                      (:waypoints))
+                  {0 {:angle (calculate-angle 0 0 1 0)
+                      :y (calculate-middle-of-square 1)
+                      :x (calculate-middle-of-square 0)}
+                   1 {:angle (calculate-angle 1 0 1 1)
+                      :y (calculate-middle-of-square 1)
+                      :x (calculate-middle-of-square 1)}})))}
+  [state]
+  (as-> (calculate-monster-path state) $
+        (reduce (fn [[waypoints [fromy fromx] idx] node]
+                  (let [wpt (create-waypoint fromy fromx node)]
+                    (if (= (:angle (get waypoints (- idx 1)))
+                           (:angle wpt))
+                      [(assoc waypoints (- idx 1) wpt) node idx]
+                      [(assoc waypoints idx wpt) node (+ idx 1)])))
+                [{} (first $) 0]
+                (drop 1 $))
+        (assoc state :waypoints (first $))))

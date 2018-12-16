@@ -14,8 +14,11 @@
         (+ (Math/atan (/ dy dx)) Math/PI)))))
 
 (defn calculate-middle-of-square
-  ([[y x]]
-   (calculate-middle-of-square y x))
+  ([pair-or-single]
+   (if (coll? pair-or-single)
+     (calculate-middle-of-square (first pair-or-single)
+                                 (last pair-or-single))
+     (* (+ pair-or-single 0.5) SQUARE_SIZE)))
   ([y x]
    [(* (+ y 0.5) SQUARE_SIZE)
     (* (+ x 0.5) SQUARE_SIZE)]))
