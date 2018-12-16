@@ -86,15 +86,18 @@
   {:test (fn []
            (is (= (create-tower "Basic")
                   {:name     "Basic"
-                   :fired-at 0}))
+                   :fired-at 0
+                   :dir      0}))
            (is (= (create-tower "Basic" :y 1 :x 1)
                   {:name     "Basic"
                    :fired-at 0
+                   :dir      0
                    :y        1
                    :x        1})))}
   [name & kvs]
   (let [tower {:name     name
-               :fired-at 0}]
+               :fired-at 0
+               :dir      0}]
     (if (empty? kvs)
       tower
       (apply assoc tower kvs))))
