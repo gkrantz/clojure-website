@@ -49,14 +49,14 @@
   "Pops from queue and adds the children of the popped element if any.
   returns a map of parent-child relations."
   {:test (fn []
-           (is (= {[1 0] [0 0]
+           (is (= (->> (conj clojure.lang.PersistentQueue/EMPTY [0 0])
+                       (iterate-queue 2 2 {}))
+                  {[1 0] [0 0]
                    [1 1] [0 0]
                    [0 1] [0 0]
                    [0 0] [1 1]
                    ; start square gets a useless parent
-                   }
-                  (->> (conj clojure.lang.PersistentQueue/EMPTY [0 0])
-                       (iterate-queue 2 2 {})))))}
+                   })))}
   [height width parents queue]
   (let [yx (peek queue)]
     (if (nil? yx)
