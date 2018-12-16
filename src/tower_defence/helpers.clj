@@ -4,7 +4,13 @@
 
 (defn calculate-middle-of-square
   [y x]
-  [(* (+ y 0.5) SQUARE_SIZE) (* (+ x 0.5) SQUARE_SIZE)])
+  [(* (+ y 0.5) SQUARE_SIZE)
+   (* (+ x 0.5) SQUARE_SIZE)])
+
+(defn pixel->square
+  [y x]
+  ([(int (/ y SQUARE_SIZE))
+    (int (/ x SQUARE_SIZE))]))
 
 (defn get-height
   [state]
