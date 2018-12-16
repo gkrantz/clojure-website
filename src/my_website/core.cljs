@@ -39,8 +39,7 @@
              (fn [_ _ _ state]
                (render! state)))
 
-  (reset! state-atom {:user     {:name "User"}
-                      :location "Home"}))
+  (reset! state-atom {:location "Home"}))
 
 (defn on-js-reload []
   (render! (deref state-atom)))
