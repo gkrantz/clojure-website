@@ -6,3 +6,4 @@ Leiningen.gitignore
 resources/public/js/
 target/
 .nrepl-port
+*.xml___jb_tmp___

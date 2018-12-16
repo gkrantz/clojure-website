@@ -2,7 +2,8 @@
   (:require [clojure.test :refer [is]]
             [tower-defence.definitions :refer [get-definition]]
             [tower-defence.pathfinding :refer [find-path]]
-            [tower-defence.getters-and-setters :refer [get-end
+            [tower-defence.getters-and-setters :refer [force-add-tower
+                                                       get-end
                                                        get-gold
                                                        get-height
                                                        get-start
@@ -25,11 +26,6 @@
 (defn create-game
   [data]
   (merge (create-empty-state) (or data {})))
-
-(defn force-add-tower
-  "Adds a tower to the state without any checking if it's healthy for the state."
-  [state tower [y x]]
-  (assoc-in state [:towers [y x]] tower))
 
 (defn calculate-monster-path
   "Calculates the path the monsters will take in a state."

@@ -29,3 +29,8 @@
 (defn get-tower-locations
   [state]
   (keys (:towers state)))
+
+(defn force-add-tower
+  "Adds a tower to the state without any checking if it's healthy for the state."
+  [state tower [y x]]
+  (assoc-in state [:towers [y x]] tower))
