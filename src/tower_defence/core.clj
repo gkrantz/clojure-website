@@ -3,6 +3,7 @@
             [tower-defence.definitions :refer [get-definition]]
             [tower-defence.pathfinding :refer [find-path]]
             [tower-defence.getters-and-setters :refer [force-add-tower
+                                                       generate-id
                                                        get-end
                                                        get-gold
                                                        get-height
@@ -11,15 +12,6 @@
                                                        get-tower-locations
                                                        get-width
                                                        reduce-gold]]))
-
-(def counter-atom (atom 0))
-
-(defn generate-id
-  ([]
-   (generate-id ""))
-  ([prefix]
-   (swap! counter-atom inc)
-   (str prefix (deref counter-atom))))
 
 (defn create-empty-state
   []

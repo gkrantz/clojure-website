@@ -38,3 +38,12 @@
 (defn reduce-gold
   [state amount]
   (update state :gold (fn [old-value] (- old-value amount))))
+
+(def counter-atom (atom 0))
+
+(defn generate-id
+  ([]
+   (generate-id ""))
+  ([prefix]
+   (swap! counter-atom inc)
+   (str prefix (deref counter-atom))))
