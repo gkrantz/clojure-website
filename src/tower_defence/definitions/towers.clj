@@ -2,6 +2,7 @@
   (:require [tower-defence.definitions :as definitions]))
 
 (def tower-definitions
-  {"Basic" {:cost 10}})
+  {"Basic" {:name "Basic"
+            :cost 10}})
 
 (definitions/add-definitions! tower-definitions)

@@ -10,5 +10,5 @@
   (as-> (-> (deref definitions-atom)
             (get name)) $
         (do (when (nil? $)
-              (println "Couldn't load definition " name ", are the definitions loaded?."))
+              (println "Couldn't load definition" name ", are the definitions loaded?"))
             $)))
