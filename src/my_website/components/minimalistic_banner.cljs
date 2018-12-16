@@ -12,13 +12,14 @@
    (let [current-location (:location app-state)]
      (map
        (fn [loc] [:div {:key      (str loc)
-                        :style    {:display   "inline-block"
-                                   :margin    30
-                                   :font-size "30px"
-                                   :cursor    "pointer"
-                                   :color     (if (= loc current-location)
-                                                "#EFEFEF"
-                                                "black")}
+                        :style    {:display     "inline-block"
+                                   :margin      30
+                                   :font-size   "30px"
+                                   :cursor      "pointer"
+                                   :user-select "none"
+                                   :color       (if (= loc current-location)
+                                                  "#EFEFEF"
+                                                  "black")}
                         :on-click (fn [] (trigger-event {:name :route
                                                          :data {:to   loc
                                                                 :from current-location}}))}
