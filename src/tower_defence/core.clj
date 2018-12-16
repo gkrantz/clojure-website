@@ -295,7 +295,7 @@
           (get-monsters state)))
 
 (defn tick
-  "A game tick."
+  "A game tick during the monster phase."
   [state]
   (-> (all-towers-attempt-to-shoot state)
       (remove-dead-monsters)
