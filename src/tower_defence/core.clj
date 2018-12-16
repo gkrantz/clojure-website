@@ -9,7 +9,8 @@
                                                        get-start
                                                        get-tower-cost
                                                        get-tower-locations
-                                                       get-width]]))
+                                                       get-width
+                                                       reduce-gold]]))
 
 (defn create-empty-state
   []
@@ -70,3 +71,31 @@
        (not (= [y x] (get-end state)))
        (not (nil? (calculate-monster-path (force-add-tower state "blocking?" [y x]))))
        (>= (get-gold state) (get-tower-cost name))))
+
+(defn create-tower
+  "Creates a tower given a name."
+  {:test (fn []
+           (is (= (create-tower "Basic")
+                  {:name     "Basic"
+                   :fired-at 0}))
+           (is (= (create-tower "Basic" :y 1 :x 1)
+                  {:name     "Basic"
+                   :fired-at 0
+                   :y        1
+                   :x        1})))}
+  [name & kvs]
+  (let [tower {:name     name
+               :fired-at 0}]
+    (if (empty? kvs)
+      tower
+      (apply assoc tower kvs))))
+
+(defn build-tower
+  "Builds a tower without checks."
+  {:test (fn [] (as-> (create-empty-state) $
+                      (build-tower $ "Basic" [1 1])
+                      (do (is (= (:towers $) {[1 1] (create-tower "Basic" :x 1 :y 1)}))
+                          (is (= (get-gold $) 90)))))}
+  [state name [y x]]
+    (-> (reduce-gold state (get-tower-cost name))
+        (force-add-tower (create-tower name :y y :x x) [y x])))

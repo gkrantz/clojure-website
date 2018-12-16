@@ -34,3 +34,7 @@
   "Adds a tower to the state without any checking if it's healthy for the state."
   [state tower [y x]]
   (assoc-in state [:towers [y x]] tower))
+
+(defn reduce-gold
+  [state amount]
+  (update state :gold (fn [old-value] (- old-value amount))))
