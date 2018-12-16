@@ -251,8 +251,9 @@
 (defn attempt-to-shoot
   [state monsters tower]
   (let [target (find-target monsters (:y tower) (:x tower) (get-range state tower))]
-    (if (and (not (nil? target))
-             (ready-to-shoot? state tower)
-             (angle-tower state tower target))
-      (shoot state tower target)
+    (if (not (nil? target))
+      (as-> (angle-tower state tower target) $
+            (if (ready-to-shoot? $ tower)
+              (shoot $ tower target)
+              $))
       state)))
