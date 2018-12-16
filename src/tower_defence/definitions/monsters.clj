@@ -4,6 +4,6 @@
 (def monster-definitions
   {"Blob" {:name   "Blob"
            :health 15
-           :speed  100}})
+           :speed  10}})
 
 (definitions/add-definitions! monster-definitions)

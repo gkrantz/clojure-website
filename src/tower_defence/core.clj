@@ -4,16 +4,27 @@
             [tower-defence.pathfinding :refer [find-path]]
             [tower-defence.helpers :refer [calculate-angle
                                            calculate-middle-of-square
+                                           create-monster
+                                           force-add-monster
                                            force-add-tower
                                            generate-id
+                                           get-abs-start
+                                           get-angle
                                            get-end
                                            get-gold
                                            get-height
+                                           get-monster-ids
+                                           get-monster-wpt
+                                           get-speed
                                            get-start
                                            get-tower-cost
                                            get-tower-locations
                                            get-width
-                                           reduce-gold]]))
+                                           get-x
+                                           get-y
+                                           reduce-gold
+                                           update-monster]]
+            [tower-defence.constants :refer [TICKS_PER_SECOND]]))
 
 (defn create-empty-state
   []
@@ -25,7 +36,11 @@
    :start       [11 0]
    :end         [0 11]
    :gold        100
-   :lives       10})
+   :lives       10
+   :wave        1
+   :phase       :build
+   :level       :test
+   :counter     1})
 
 (defn create-game
   [data]
@@ -104,8 +119,9 @@
                       (build-tower $ "Basic" [1 1])
                       (do (is (= (get-gold $) 90)))))}
   [state name [y x]]
-  (-> (reduce-gold state (get-tower-cost name))
-      (force-add-tower (create-tower name :id (generate-id "t") :y y :x x) [y x])))
+  (as-> (reduce-gold state (get-tower-cost name)) $
+        (let [[new_state id] (generate-id $ "t")]
+          (force-add-tower new_state (create-tower name :id id :y y :x x) [y x]))))
 
 (defn- create-waypoint
   [fromy fromx [toy tox]]
@@ -129,11 +145,11 @@
                       (add-waypoints-to-state)
                       (:waypoints))
                   {0 {:angle (calculate-angle 0 0 1 0)
-                      :y (calculate-middle-of-square 1)
-                      :x (calculate-middle-of-square 0)}
+                      :y     (calculate-middle-of-square 1)
+                      :x     (calculate-middle-of-square 0)}
                    1 {:angle (calculate-angle 1 0 1 1)
-                      :y (calculate-middle-of-square 1)
-                      :x (calculate-middle-of-square 1)}})))}
+                      :y     (calculate-middle-of-square 1)
+                      :x     (calculate-middle-of-square 1)}})))}
   [state]
   (as-> (calculate-monster-path state) $
         (reduce (fn [[waypoints [fromy fromx] idx] node]
@@ -145,3 +161,44 @@
                 [{} (first $) 0]
                 (drop 1 $))
         (assoc state :waypoints (first $))))
+
+(defn add-monster-to-board
+  ([state name]
+   (let [[absy absx] (get-abs-start state)]
+     (add-monster-to-board state name absy absx)))
+  ([state name absy absx]
+   (let [[new_state id] (generate-id state "m")]
+     (as-> (create-monster name
+                           :y absy
+                           :x absx
+                           :id id
+                           :target-wpt-idx 0) $
+           (force-add-monster new_state $)))))
+
+(defn move-monster
+  {:test (fn []
+           (is (> (-> (create-game {:start     [0 0]
+                                    :end       [1 1]
+                                    :height    2
+                                    :width     2
+                                    :waypoints {0 {:angle (calculate-angle 0 0 1 0)
+                                                   :y     (calculate-middle-of-square 1)
+                                                   :x     (calculate-middle-of-square 0)}}})
+                      (add-monster-to-board "Blob")
+                      (move-monster "m1")
+                      (get-y "m1"))
+                  16.0)))}
+  [state id]
+  (let [speed (/ (get-speed state id) TICKS_PER_SECOND)
+        angle (get-angle state id)
+        dx (* speed (Math/cos angle))
+        dy (* speed (Math/sin angle))]
+    (-> (update-monster state id (fn [old] (update old :x + dx)))
+        (update-monster id (fn [old] (update old :y + dy))))))
+
+(defn move-all-mosters
+  [state]
+  (reduce (fn [state_ id]
+            (move-monster state_ id))
+          state
+          (get-monster-ids state)))

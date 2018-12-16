@@ -75,11 +75,53 @@
   [state amount]
   (update state :gold (fn [old-value] (- old-value amount))))
 
-(def counter-atom (atom 0))
-
 (defn generate-id
-  ([]
-   (generate-id ""))
-  ([prefix]
-   (swap! counter-atom inc)
-   (str prefix (deref counter-atom))))
+  ([state]
+   (generate-id state ""))
+  ([state prefix]
+   [(update state :counter inc) (str prefix (:counter state))]))
+
+(defn create-monster
+  [name & kvs]
+  (let [monster {:name         name
+                 :damage-taken 0}]
+    (if (empty? kvs)
+      monster
+      (apply assoc monster kvs))))
+
+(defn get-monster-ids
+  [state]
+  (keys (:monsters state)))
+
+(defn get-monster
+  [state id]
+  (get-in state [:monsters id]))
+
+(defn get-speed
+  [state id]
+  (let [definition (get-definition (:name (get-monster state id)))]
+    (get definition :speed)))
+
+(defn get-x
+  "Only supported for monsters for now."
+  [state id]
+  (get-in state [:monsters id :x]))
+
+(defn get-y
+  "Only supported for monsters for now."
+  [state id]
+  (get-in state [:monsters id :y]))
+
+(defn get-monster-wpt
+  [state id]
+  (as-> (get-monster state id) $
+        (get-in state [:waypoints (:target-wpt-idx $)])))
+
+(defn get-angle
+  [state id]
+  (as-> (get-monster-wpt state id) $
+        (:angle $)))
+
+(defn update-monster
+  [state id func]
+  (update-in state [:monsters id] func))
