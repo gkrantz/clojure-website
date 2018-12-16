@@ -1,5 +1,10 @@
-(ns tower-defence.getters-and-setters
-  (:require [tower-defence.definitions :refer [get-definition]]))
+(ns tower-defence.helpers
+  (:require [tower-defence.definitions :refer [get-definition]]
+            [tower-defence.constants :refer [SQUARE_SIZE]]))
+
+(defn calculate-middle-of-square
+  [y x]
+  [(* (+ y 0.5) SQUARE_SIZE) (* (+ x 0.5) SQUARE_SIZE)])
 
 (defn get-height
   [state]

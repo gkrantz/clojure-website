@@ -2,16 +2,16 @@
   (:require [clojure.test :refer [is]]
             [tower-defence.definitions :refer [get-definition]]
             [tower-defence.pathfinding :refer [find-path]]
-            [tower-defence.getters-and-setters :refer [force-add-tower
-                                                       generate-id
-                                                       get-end
-                                                       get-gold
-                                                       get-height
-                                                       get-start
-                                                       get-tower-cost
-                                                       get-tower-locations
-                                                       get-width
-                                                       reduce-gold]]))
+            [tower-defence.helpers :refer [force-add-tower
+                                           generate-id
+                                           get-end
+                                           get-gold
+                                           get-height
+                                           get-start
+                                           get-tower-cost
+                                           get-tower-locations
+                                           get-width
+                                           reduce-gold]]))
 
 (defn create-empty-state
   []
