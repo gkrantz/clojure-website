@@ -2,10 +2,23 @@
   (:require [tower-defence.definitions :refer [get-definition]]
             [tower-defence.constants :refer [SQUARE_SIZE]]))
 
+(defn calculate-angle
+  [y1 x1 y2 x2]
+  (let [dy (- y2 y1) dx (- x2 x1)]
+    (if (= 0 dx)
+      (if (> dy 0)
+        (/ Math/PI 2)
+        (/ Math/PI -2))
+      (if (> dx 0)
+        (Math/atan (/ dy dx))
+        (+ (Math/atan (/ dy dx)) Math/PI)))))
+
 (defn calculate-middle-of-square
-  [y x]
-  [(* (+ y 0.5) SQUARE_SIZE)
-   (* (+ x 0.5) SQUARE_SIZE)])
+  ([[y x]]
+   (calculate-middle-of-square y x))
+  ([y x]
+   [(* (+ y 0.5) SQUARE_SIZE)
+    (* (+ x 0.5) SQUARE_SIZE)]))
 
 (defn pixel->square
   [y x]
@@ -24,6 +37,10 @@
   [state]
   (:start state))
 
+(defn get-abs-start
+  [state]
+  (calculate-middle-of-square (get-start state)))
+
 (defn get-end
   [state]
   (:end state))
@@ -40,6 +57,11 @@
 (defn get-tower-locations
   [state]
   (keys (:towers state)))
+
+(defn force-add-monster
+  "Adds a monster to the state."
+  [state monster]
+  (assoc-in state [:monsters (:id monster)] monster))
 
 (defn force-add-tower
   "Adds a tower to the state without any checking if it's healthy for the state."
