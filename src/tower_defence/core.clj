@@ -204,7 +204,8 @@
         dx (* speed (Math/cos angle))
         dy (* speed (Math/sin angle))]
     (-> (update-monster state id (fn [old] (update old :x + dx)))
-        (update-monster id (fn [old] (update old :y + dy))))))
+        (update-monster id (fn [old] (update old :y + dy)))
+        (update-monster id (fn [old] (assoc old :angle angle))))))
 
 (defn move-all-monsters
   [state]
