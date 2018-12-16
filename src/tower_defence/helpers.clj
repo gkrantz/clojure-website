@@ -12,13 +12,13 @@
 (defn calculate-angle
   [y1 x1 y2 x2]
   (let [dy (- y2 y1) dx (- x2 x1)]
-    (if (= 0 dx)
+    (if (< (Math/abs dx) 0.0001)
       (if (> dy 0)
         (/ Math/PI 2)
         (/ Math/PI -2))
       (if (> dx 0)
         (Math/atan (/ dy dx))
-        (+ (Math/atan (/ dy dx)) Math/PI)))))
+          (+ (Math/atan (/ dy dx)) Math/PI)))))
 
 (defn calculate-middle-of-square
   ([pair-or-single]
@@ -105,6 +105,10 @@
   [state id]
   (get-in state [:monsters id]))
 
+(defn get-tower
+  [state id]
+  (get-in state [:towers id]))
+
 (defn get-rate
   [state tower]
   (let [definition (get-definition (:name tower))]
@@ -137,9 +141,16 @@
 
 (defn get-angle
   [state id]
-  (as-> (get-monster-wpt state id) $
-        (:angle $)))
+  (if (= \t (first id))
+    (-> (get-tower state id)
+        (:angle))
+    (-> (get-monster-wpt state id)
+          (:angle))))
 
 (defn update-monster
   [state id func]
   (update-in state [:monsters id] func))
+
+(defn update-tower
+  [state id func]
+  (update-in state [:towers id] func))

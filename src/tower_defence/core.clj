@@ -16,6 +16,7 @@
                                            get-height
                                            get-monster-ids
                                            get-monster-wpt
+                                           get-tower
                                            get-range
                                            get-rate
                                            get-speed
@@ -26,7 +27,8 @@
                                            get-x
                                            get-y
                                            reduce-gold
-                                           update-monster]]
+                                           update-monster
+                                           update-tower]]
             [tower-defence.constants :refer [TICKS_PER_SECOND]]))
 
 (defn create-empty-state
@@ -48,25 +50,17 @@
 
 (defn create-tower
   "Creates a tower given a name."
-  {:test (fn []
-           (is (= (create-tower "Basic" [1 0])
-                  {:name     "Basic"
-                   :fired-at 0
-                   :dir      0
-                   :y        48.0
-                   :x        16.0
-                   :square   [1 0]}))
-           (is (= (create-tower "Basic" [0 1])
-                  {:name     "Basic"
-                   :fired-at 0
-                   :dir      0
-                   :y        16.0
-                   :x        48.0
-                   :square   [0 1]})))}
+  {:test (fn [] (is (= (create-tower "Basic" [0 1])
+                       {:name     "Basic"
+                        :fired-at 0
+                        :angle    0
+                        :y        16.0
+                        :x        48.0
+                        :square   [0 1]})))}
   [name [y x] & kvs]
   (let [tower {:name     name
                :fired-at 0
-               :dir      0
+               :angle    0
                :y        (calculate-middle-of-square y)
                :x        (calculate-middle-of-square x)
                :square   [y x]}]
@@ -241,7 +235,15 @@
 
 (defn angle-tower
   "Sets the angle of a tower to face a target."
-  [state tower target])
+  {:test (fn []
+           (is (= (as-> (create-game {:towers {"t1" (create-tower "Basic" [0 0] :id "t1")}}) $
+                        (angle-tower $ (get-tower $ "t1") {:y 48.0 :x 16.0})
+                        (get-angle $ "t1"))
+                  (/ Math/PI 2))))}
+  [state tower target]
+  (update-tower state (:id tower)
+                (fn [old] (assoc old :angle (calculate-angle (:y tower) (:x tower)
+                                                             (:y target) (:x target))))))
 
 (defn shoot
   [state tower target]
