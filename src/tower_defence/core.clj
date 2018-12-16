@@ -12,10 +12,19 @@
                                                        get-width
                                                        reduce-gold]]))
 
+(def counter-atom (atom 0))
+
+(defn generate-id
+  ([]
+   (generate-id ""))
+  ([prefix]
+   (swap! counter-atom inc)
+   (str prefix (deref counter-atom))))
+
 (defn create-empty-state
   []
   {:towers      {}
-   :monsters    []
+   :monsters    {}
    :projectiles []
    :height      12
    :width       12
@@ -94,8 +103,8 @@
   "Builds a tower without checks."
   {:test (fn [] (as-> (create-empty-state) $
                       (build-tower $ "Basic" [1 1])
-                      (do (is (= (:towers $) {[1 1] (create-tower "Basic" :x 1 :y 1)}))
+                      (do (is (= (:towers $) {[1 1] (create-tower "Basic" :id "t1" :x 1 :y 1)}))
                           (is (= (get-gold $) 90)))))}
   [state name [y x]]
-    (-> (reduce-gold state (get-tower-cost name))
-        (force-add-tower (create-tower name :y y :x x) [y x])))
+  (-> (reduce-gold state (get-tower-cost name))
+      (force-add-tower (create-tower name :id (generate-id "t") :y y :x x) [y x])))
