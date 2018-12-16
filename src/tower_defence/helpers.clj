@@ -4,8 +4,8 @@
             [clojure.test :refer [is]]))
 
 (defn distance
-  {:test (fn [](is (= (distance 1 1 4 5)
-                5.0)))}
+  {:test (fn [] (is (= (distance 1 1 4 5)
+                       5.0)))}
   [y1 x1 y2 x2]
   (Math/sqrt (+ (Math/pow (- y2 y1) 2) (Math/pow (- x2 x1) 2))))
 
@@ -18,7 +18,7 @@
         (/ Math/PI -2))
       (if (> dx 0)
         (Math/atan (/ dy dx))
-          (+ (Math/atan (/ dy dx)) Math/PI)))))
+        (+ (Math/atan (/ dy dx)) Math/PI)))))
 
 (defn calculate-middle-of-square
   ([pair-or-single]
@@ -105,6 +105,10 @@
   [state id]
   (get-in state [:monsters id]))
 
+(defn get-monsters
+  [state]
+  (vals (:monsters state)))
+
 (defn get-tower
   [state id]
   (get-in state [:towers id]))
@@ -145,7 +149,7 @@
     (-> (get-tower state id)
         (:angle))
     (-> (get-monster-wpt state id)
-          (:angle))))
+        (:angle))))
 
 (defn update-monster
   [state id func]
@@ -154,3 +158,25 @@
 (defn update-tower
   [state id func]
   (update-in state [:towers id] func))
+
+(defn damage-monster
+  [state id amount]
+  (update-monster state id (fn [old]
+                             (update old :damage-taken + amount))))
+
+(defn get-damage
+  [state tower]
+  (let [definition (get-definition (:name tower))]
+    (:damage definition)))
+
+(defn get-max-health
+  [monster]
+  (:health (get-definition (:name monster))))
+
+(defn get-health
+  [monster]
+  (- (get-max-health monster) (:damage-taken monster)))
+
+(defn is-dead?
+  [monster]
+  (> 0 (get-health monster)))

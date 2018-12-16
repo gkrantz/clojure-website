@@ -5,15 +5,18 @@
             [tower-defence.helpers :refer [calculate-angle
                                            calculate-middle-of-square
                                            create-monster
+                                           damage-monster
                                            distance
                                            force-add-monster
                                            force-add-tower
                                            generate-id
                                            get-abs-start
                                            get-angle
+                                           get-damage
                                            get-end
                                            get-gold
                                            get-height
+                                           get-monsters
                                            get-monster-ids
                                            get-monster-wpt
                                            get-tower
@@ -26,6 +29,7 @@
                                            get-width
                                            get-x
                                            get-y
+                                           is-dead?
                                            reduce-gold
                                            update-monster
                                            update-tower]]
@@ -202,7 +206,7 @@
     (-> (update-monster state id (fn [old] (update old :x + dx)))
         (update-monster id (fn [old] (update old :y + dy))))))
 
-(defn move-all-mosters
+(defn move-all-monsters
   [state]
   (reduce (fn [state_ id]
             (move-monster state_ id))
@@ -247,7 +251,7 @@
 
 (defn shoot
   [state tower target]
-  ;;TODO implement this
+  (damage-monster state (:id target) (get-damage state tower))
   state)
 
 (defn attempt-to-shoot
@@ -259,3 +263,40 @@
               (shoot $ tower target)
               $))
       state)))
+
+(defn all-towers-attempt-to-shoot
+  [state]
+  ;;TODO
+  state)
+
+(defn remove-monster
+  {:test (fn [] (is (= (-> (create-game {:monsters {"m1" (create-monster "Blob" :id "m1")
+                                                    "m2" (create-monster "Blob" :id "m2")}})
+                           (remove-monster "m1")
+                           (:monsters)
+                           (keys))
+                       ["m2"])))}
+  [state id]
+  (update state :monsters (fn [old] (dissoc old id))))
+
+(defn remove-dead-monsters
+  {:test (fn [] (is (= (-> (create-game {:monsters {"m1" (create-monster "Blob" :id "m1" :damage-taken 300)
+                                                    "m2" (create-monster "Blob" :id "m2")}})
+                           (remove-dead-monsters)
+                           (:monsters)
+                           (keys))
+                       ["m2"])))}
+  [state]
+  (reduce (fn [new_state monster]
+            (if (is-dead? monster)
+              (remove-monster new_state (:id monster))
+              new_state))
+          state
+          (get-monsters state)))
+
+(defn tick
+  "A game tick."
+  [state]
+  (-> (all-towers-attempt-to-shoot state)
+      (remove-dead-monsters)
+      (move-all-monsters)))
