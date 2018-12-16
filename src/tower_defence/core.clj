@@ -5,6 +5,7 @@
             [tower-defence.helpers :refer [calculate-angle
                                            calculate-middle-of-square
                                            create-monster
+                                           distance
                                            force-add-monster
                                            force-add-tower
                                            generate-id
@@ -15,6 +16,8 @@
                                            get-height
                                            get-monster-ids
                                            get-monster-wpt
+                                           get-range
+                                           get-rate
                                            get-speed
                                            get-start
                                            get-tower-cost
@@ -28,23 +31,54 @@
 
 (defn create-empty-state
   []
-  {:towers      {}
-   :monsters    {}
-   :projectiles []
-   :height      12
-   :width       12
-   :start       [11 0]
-   :end         [0 11]
-   :gold        100
-   :lives       10
-   :wave        1
-   :phase       :build
-   :level       :test
-   :counter     1})
+  {:towers       {}
+   :monsters     {}
+   :projectiles  []
+   :height       12
+   :width        12
+   :start        [11 0]
+   :end          [0 11]
+   :gold         100
+   :lives        10
+   :wave         1
+   :phase        :build
+   :level        :test
+   :current-tick 0
+   :counter      1})
+
+(defn create-tower
+  "Creates a tower given a name."
+  {:test (fn []
+           (is (= (create-tower "Basic" [1 0])
+                  {:name     "Basic"
+                   :fired-at 0
+                   :dir      0
+                   :y        48.0
+                   :x        16.0
+                   :square   [1 0]}))
+           (is (= (create-tower "Basic" [0 1])
+                  {:name     "Basic"
+                   :fired-at 0
+                   :dir      0
+                   :y        16.0
+                   :x        48.0
+                   :square   [0 1]})))}
+  [name [y x] & kvs]
+  (let [tower {:name     name
+               :fired-at 0
+               :dir      0
+               :y        (calculate-middle-of-square y)
+               :x        (calculate-middle-of-square x)
+               :square   [y x]}]
+    (if (empty? kvs)
+      tower
+      (apply assoc tower kvs))))
 
 (defn create-game
-  [data]
-  (merge (create-empty-state) (or data {})))
+  ([]
+   (create-game {}))
+  ([data]
+   (merge (create-empty-state) (or data {}))))
 
 (defn calculate-monster-path
   "Calculates the path the monsters will take in a state."
@@ -53,7 +87,7 @@
                                     :width  3
                                     :start  [0 0]
                                     :end    [0 2]})
-                      (force-add-tower "blocking?" [0 1])
+                      (force-add-tower (create-tower "Basic" [0 1]))
                       (calculate-monster-path))
                   nil))
            (is (= (-> (create-game {:height 1
@@ -80,7 +114,6 @@
                                       :start  [0 0]
                                       :end    [0 2]})
                         (can-build-tower? "Basic" [0 1]))))
-
            (is (-> (create-game {:height 2
                                  :width  3
                                  :start  [0 0]
@@ -89,29 +122,8 @@
   [state name [y x]]
   (and (not (= [y x] (get-start state)))
        (not (= [y x] (get-end state)))
-       (not (nil? (calculate-monster-path (force-add-tower state "blocking?" [y x]))))
+       (not (nil? (calculate-monster-path (force-add-tower state (create-tower "Basic" [y x])))))
        (>= (get-gold state) (get-tower-cost name))))
-
-(defn create-tower
-  "Creates a tower given a name."
-  {:test (fn []
-           (is (= (create-tower "Basic")
-                  {:name     "Basic"
-                   :fired-at 0
-                   :dir      0}))
-           (is (= (create-tower "Basic" :y 1 :x 1)
-                  {:name     "Basic"
-                   :fired-at 0
-                   :dir      0
-                   :y        1
-                   :x        1})))}
-  [name & kvs]
-  (let [tower {:name     name
-               :fired-at 0
-               :dir      0}]
-    (if (empty? kvs)
-      tower
-      (apply assoc tower kvs))))
 
 (defn build-tower
   "Builds a tower without checks."
@@ -121,7 +133,7 @@
   [state name [y x]]
   (as-> (reduce-gold state (get-tower-cost name)) $
         (let [[new_state id] (generate-id $ "t")]
-          (force-add-tower new_state (create-tower name :id id :y y :x x) [y x]))))
+          (force-add-tower new_state (create-tower name [y x])))))
 
 (defn- create-waypoint
   [fromy fromx [toy tox]]
@@ -139,7 +151,7 @@
                       :y     (calculate-middle-of-square 0)}}))
            (is (= (-> (create-game {:start  [0 0]
                                     :end    [1 1]
-                                    :towers {[0 1] "dummy"}
+                                    :towers {"b1" (create-tower "Basic" [0 1])}
                                     :width  2
                                     :height 2})
                       (add-waypoints-to-state)
@@ -202,3 +214,45 @@
             (move-monster state_ id))
           state
           (get-monster-ids state)))
+
+(defn find-target
+  {:test (fn []
+           (is (= (-> (find-target [(create-monster "Blob" :id "b1" :y 100 :x 100)
+                                    (create-monster "Blob" :id "b2" :y 10 :x 10)] 15 15 10)
+                      (:id))
+                  "b2"))
+           (is (= (find-target [(create-monster "Blob" :id "b1" :y 100 :x 100)] 15 15 10)
+                  nil)))}
+  [monsters y x range]
+  (when (not (empty? monsters))
+    (let [monster (first monsters)]
+      (if (<= (distance y x (:y monster) (:x monster)) range)
+        monster
+        (find-target (drop 1 monsters) y x range)))))
+
+(defn ready-to-shoot?
+  {:test (fn []
+           (is (not (-> (create-game {:current-tick 9})
+                        (ready-to-shoot? (create-tower "Basic" [0 0])))))
+           (is (-> (create-game {:current-tick 15})
+                   (ready-to-shoot? (create-tower "Basic" [0 0])))))}
+  [state tower]
+  (<= (get-rate state tower) (- (:current-tick state) (:fired-at tower))))
+
+(defn angle-tower
+  "Sets the angle of a tower to face a target."
+  [state tower target])
+
+(defn shoot
+  [state tower target]
+  ;;TODO implement this
+  state)
+
+(defn attempt-to-shoot
+  [state monsters tower]
+  (let [target (find-target monsters (:y tower) (:x tower) (get-range state tower))]
+    (if (and (not (nil? target))
+             (ready-to-shoot? state tower)
+             (angle-tower state tower target))
+      (shoot state tower target)
+      state)))

@@ -1,6 +1,13 @@
 (ns tower-defence.helpers
   (:require [tower-defence.definitions :refer [get-definition]]
-            [tower-defence.constants :refer [SQUARE_SIZE]]))
+            [tower-defence.constants :refer [SQUARE_SIZE]]
+            [clojure.test :refer [is]]))
+
+(defn distance
+  {:test (fn [](is (= (distance 1 1 4 5)
+                5.0)))}
+  [y1 x1 y2 x2]
+  (Math/sqrt (+ (Math/pow (- y2 y1) 2) (Math/pow (- x2 x1) 2))))
 
 (defn calculate-angle
   [y1 x1 y2 x2]
@@ -59,7 +66,8 @@
 
 (defn get-tower-locations
   [state]
-  (keys (:towers state)))
+  (reduce (fn [locations [_ v]]
+            (conj locations (:square v))) [] (:towers state)))
 
 (defn force-add-monster
   "Adds a monster to the state."
@@ -68,8 +76,8 @@
 
 (defn force-add-tower
   "Adds a tower to the state without any checking if it's healthy for the state."
-  [state tower [y x]]
-  (assoc-in state [:towers [y x]] tower))
+  [state tower]
+  (assoc-in state [:towers (:id tower)] tower))
 
 (defn reduce-gold
   [state amount]
@@ -97,10 +105,20 @@
   [state id]
   (get-in state [:monsters id]))
 
+(defn get-rate
+  [state tower]
+  (let [definition (get-definition (:name tower))]
+    (:rate definition)))
+
+(defn get-range
+  [state tower]
+  (let [definition (get-definition (:name tower))]
+    (:range definition)))
+
 (defn get-speed
   [state id]
   (let [definition (get-definition (:name (get-monster state id)))]
-    (get definition :speed)))
+    (:speed definition)))
 
 (defn get-x
   "Only supported for monsters for now."
