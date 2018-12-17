@@ -4,6 +4,7 @@
             [my-website.components.links :as links]
             [my-website.events :refer [events]]
             [my-website.js-interops :refer [get-url-path]]
+            [tower-defence.view :as tower-defence]
             [rum.core :as rum]))
 
 (enable-console-print!)
@@ -27,7 +28,8 @@
     (case (:location state)
       "Home" (login-form/component)
       "Links" (links/component)
-      "Games" [:div "games component placeholder"])]])
+      "Games" [:div {:style {:display "inline-block"}}
+               (tower-defence/component (rum/cursor-in state-atom [:tower-defence]) handle-event)])]])
 
 (defn render! [state]
   (rum/mount (app state)
@@ -39,7 +41,8 @@
              (fn [_ _ _ state]
                (render! state)))
 
-  (reset! state-atom {:location "Home"}))
+  (reset! state-atom {:location      "Home"
+                      :tower-defence nil}))
 
 (defn on-js-reload []
   (render! (deref state-atom)))
