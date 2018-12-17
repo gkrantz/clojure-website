@@ -294,10 +294,3 @@
               new_state))
           state
           (get-monsters state)))
-
-(defn tick
-  "A game tick during the monster phase."
-  [state]
-  (-> (all-towers-attempt-to-shoot state)
-      (remove-dead-monsters)
-      (move-all-monsters)))
