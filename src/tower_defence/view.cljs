@@ -112,12 +112,17 @@
         [y x] (pixel->square py px)]
     (swap! game-atom (fn [old] (game/attempt-build-tower old "Basic" y x)))))
 
+(defn start-wave-button-pressed
+  []
+  (swap! game-atom (fn [old] (game/start-monster-wave old))))
+
 (rum/defc component
   []
   [:div
    [:button {:on-click (fn [] (start-draw-loop!))} "Start Game!"]
    [:button {:on-click (fn [] (reset! game-atom (game/tick @game-atom)))} "Tick!"]
    [:button {:on-click (fn [] (start-tick-loop!))} "Tick timer"]
+   [:button {:on-click (fn [] (start-wave-button-pressed))} "Start wave"]
    [:canvas {:class       "tdgame"
              :id          "canvas0"
              :width       384

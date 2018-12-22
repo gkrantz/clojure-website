@@ -318,10 +318,10 @@
   "Loads the next wave name into the state. Resets info."
   [state]
   (let [old-definition (get-definition (get-in state [:wave :name]))
-        new-definition (get-definition (get old-definition :next))]
+        new-definition (get-definition (:next old-definition))]
     (if (nil? new-definition)
       (win-game state)
-      (assoc state :wave {:name             (:name new-definition)
+      (assoc state :wave {:name             (:next old-definition)
                           :spawned-monsters {}
                           :finished         false}))))
 
