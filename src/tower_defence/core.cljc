@@ -22,6 +22,7 @@
                                            get-monster-ids
                                            get-monster-wpt
                                            get-tower
+                                           get-towers
                                            get-range
                                            get-rate
                                            get-speed
@@ -269,8 +270,8 @@
 
 (defn shoot
   [state tower target]
-  (damage-monster state (:id target) (get-damage state tower))
-  state)
+  (-> (damage-monster state (:id target) (get-damage state tower))
+      (update-tower (:id tower) (fn [old] (assoc old :fired-at (:current-tick state))))))
 
 (defn attempt-to-shoot
   [state monsters tower]
@@ -284,8 +285,9 @@
 
 (defn all-towers-attempt-to-shoot
   [state]
-  ;;TODO
-  state)
+  (let [monsters (get-monsters state)
+        towers (get-towers state)]
+    (reduce (fn [new-state tower] (attempt-to-shoot new-state monsters tower)) state towers)))
 
 (defn remove-dead-monsters
   {:test (fn [] (is (= (-> (create-game {:monsters {"m1" (create-monster "Blob" :id "m1" :damage-taken 300)
