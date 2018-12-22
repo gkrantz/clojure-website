@@ -7,6 +7,8 @@
             [cljs.core.async :refer [close! put! chan <! timeout unique alts!]]))
 
 (def game-atom (atom (game/start-game)))
+(def canvas-atom (atom nil))
+(def mouse-atom (atom {:x 0 :y 0}))
 
 (defn- get-cells
   [height width]
@@ -63,7 +65,7 @@
 (defn draw-monsters
   [state ctx]
   (doseq [monster (get-monsters state)]
-    (.drawImage ctx blob (int (- (:x monster) 9)) (int (- (:x monster) 9)))))
+    (.drawImage ctx blob (int (- (:x monster) 9)) (int (- (:y monster) 9)))))
 
 (defn draw-game
   [state ctx]
@@ -73,15 +75,27 @@
 
 (defn start-draw-loop!
   []
+  (reset! canvas-atom (.getElementById js/document "canvas0"))
   (let [redraw-chan (draw-chan)
-        ctx (as-> (.getElementById js/document "canvas0") $
-                  (.getContext $ "2d"))]
+        ctx (.getContext @canvas-atom "2d")]
     (go-loop [state nil]
              (<! redraw-chan)
              (let [new-state (get-state!)]
                (when (not= state new-state)
                  (draw-game new-state ctx))
                (recur new-state)))))
+
+(defn update-mouse!
+  [event]
+  (let [canvas @canvas-atom
+        rect (.getBoundingClientRect canvas)
+        y (- (.-clientY event) (.-top rect))
+        x (- (.-clientX event) (.-left rect))]
+    (reset! mouse-atom {:x x :y y})))
+
+(defn mouse-pressed!
+  []
+  (println (deref mouse-atom)))
 
 (rum/defc component
   []
@@ -91,8 +105,10 @@
    [:button {:on-click (fn [] (js/setInterval
                                 #(reset! game-atom (game/tick @game-atom))
                                 (/ 1000 constants/TICKS_PER_SECOND)))} "Tick timer"]
-   [:canvas {:class  "tdgame"
-             :id     "canvas0"
-             :width  384
-             :height 384
-             :style  {:background-color "green"}}]])
+   [:canvas {:class       "tdgame"
+             :id          "canvas0"
+             :width       384
+             :height      384
+             :style       {:background-color "green"}
+             :onMouseMove (fn [e] (update-mouse! e))
+             :onMouseDown (fn [e] (mouse-pressed!))}]])

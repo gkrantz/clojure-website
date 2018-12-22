@@ -17,6 +17,7 @@
                                            get-end
                                            get-gold
                                            get-height
+                                           get-monster
                                            get-monsters
                                            get-monster-ids
                                            get-monster-wpt
@@ -167,6 +168,39 @@
                            :target-wpt-idx 0) $
            (force-add-monster new_state $)))))
 
+(defn remove-monster
+  {:test (fn [] (is (= (-> (create-game {:monsters {"m1" (create-monster "Blob" :id "m1")
+                                                    "m2" (create-monster "Blob" :id "m2")}})
+                           (remove-monster "m1")
+                           (:monsters)
+                           (keys))
+                       ["m2"])))}
+  [state id]
+  (update state :monsters (fn [old] (dissoc old id))))
+
+(defn monster-reached-end
+  [state id]
+  ;;TODO Remove lives etc.
+  (remove-monster state id))
+
+(defn next-waypoint
+  "Increments the target waypoint for a monster."
+  [state id]
+  (if (= (:target-wpt-idx (get-monster state id)) (- (count (:waypoints state)) 1))
+    (monster-reached-end state id)
+    (update-monster state id (fn [m] (update m :target-wpt-idx inc)))))
+
+(defn check-waypoint
+  [state id]
+  (let [monster (get-monster state id)
+        wpt (get-monster-wpt state id)
+        dy (Math/abs (- (:y monster) (:y wpt)))
+        dx (Math/abs (- (:x monster) (:x wpt)))]
+    (if (and (< dy 1)
+             (< dx 1))
+      (next-waypoint state id)
+      state)))
+
 (defn move-monster
   {:test (fn []
            (is (> (-> (create-game {:start     [0 0]
@@ -187,7 +221,8 @@
         dy (* speed (Math/sin angle))]
     (-> (update-monster state id (fn [old] (update old :x + dx)))
         (update-monster id (fn [old] (update old :y + dy)))
-        (update-monster id (fn [old] (assoc old :angle angle))))))
+        (update-monster id (fn [old] (assoc old :angle angle)))
+        (check-waypoint id))))
 
 (defn move-all-monsters
   [state]
@@ -251,16 +286,6 @@
   [state]
   ;;TODO
   state)
-
-(defn remove-monster
-  {:test (fn [] (is (= (-> (create-game {:monsters {"m1" (create-monster "Blob" :id "m1")
-                                                    "m2" (create-monster "Blob" :id "m2")}})
-                           (remove-monster "m1")
-                           (:monsters)
-                           (keys))
-                       ["m2"])))}
-  [state id]
-  (update state :monsters (fn [old] (dissoc old id))))
 
 (defn remove-dead-monsters
   {:test (fn [] (is (= (-> (create-game {:monsters {"m1" (create-monster "Blob" :id "m1" :damage-taken 300)

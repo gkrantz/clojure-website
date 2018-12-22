@@ -1,7 +1,9 @@
 (ns tower-defence.pathfinding
   (:require [clojure.test :refer [is]]))
 
-(def empty-queue #queue [])
+(def empty-queue
+  #?(:clj  clojure.lang.PersistentQueue/EMPTY
+     :cljs #queue []))
 
 (def neighbour-deltas
   [[-1 -1]

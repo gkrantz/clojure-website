@@ -13,7 +13,7 @@
   [y1 x1 y2 x2]
   (let [dy (- y2 y1) dx (- x2 x1)]
     (if (< (Math/abs dx) 0.0001)
-      (if (> dy 0)
+      (if (> y2 y1)
         (/ Math/PI 2)
         (/ Math/PI -2))
       (if (> dx 0)
