@@ -134,7 +134,7 @@
   (get-in state [:towers id]))
 
 (defn get-towers
-  [state id]
+  [state]
   (vals (:towers state)))
 
 (defn get-rate
