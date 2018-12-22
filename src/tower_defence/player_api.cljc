@@ -44,9 +44,12 @@
 (defn tick
   "A game tick during the monster phase."
   [state]
-  (-> (update state :current-tick inc)
-      (all-towers-attempt-to-shoot)
-      (remove-dead-monsters)
-      (move-all-monsters)
-      (attempt-to-spawn-monsters)
-      (check-if-phase-over)))
+  (as-> (update state :current-tick inc) $
+        (if (= (:phase state) :monster)
+          (-> $
+              (all-towers-attempt-to-shoot)
+              (remove-dead-monsters)
+              (move-all-monsters)
+              (attempt-to-spawn-monsters)
+              (check-if-phase-over))
+          $)))
