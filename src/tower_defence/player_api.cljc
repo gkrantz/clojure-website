@@ -1,7 +1,9 @@
 (ns tower-defence.player-api
   (:require [tower-defence.definitions.towers]
             [tower-defence.definitions.monsters]
-            [tower-defence.core :refer [create-game
+            [tower-defence.core :refer [build-tower
+                                        can-build-tower?
+                                        create-game
                                         all-towers-attempt-to-shoot
                                         remove-dead-monsters
                                         move-all-monsters
@@ -24,9 +26,16 @@
                     :monsters {"m0" (create-monster "Blob" :id "m0" :y 368.0 :x 16.0 :target-wpt-idx 0)}})
       (add-waypoints-to-state)))
 
+(defn attempt-build-tower
+  [state name y x]
+  (if (can-build-tower? state name [y x])
+    (build-tower state name [y x])
+    state))
+
 (defn tick
   "A game tick during the monster phase."
   [state]
-  (-> (all-towers-attempt-to-shoot state)
+  (-> (update state :current-tick inc)
+      (all-towers-attempt-to-shoot)
       (remove-dead-monsters)
       (move-all-monsters)))

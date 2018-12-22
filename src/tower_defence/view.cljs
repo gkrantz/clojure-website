@@ -56,8 +56,9 @@
 
 (defn draw-background
   [state ctx]
-  (doseq [[y x] (get-cells (:height state) (:width state))]
-    (.drawImage ctx image32x32 (* x 32) (* y 32))))
+  (.drawImage ctx image32x32 0 0 384 384))
+  ;(doseq [[y x] (get-cells (:height state) (:width state))]
+    ;(.drawImage ctx image32x32 (* x 32) (* y 32))))
 
 (defn draw-towers
   [state ctx]
@@ -73,10 +74,10 @@
   [state ctx]
   (let [{py :y px :x} (deref mouse-atom)
         [y x] (pixel->square py px)]
-    (when (can-build-tower? state "Basic" [y x])
+    ;(when (can-build-tower? state "Basic" [y x])
       (set! (.-globalAlpha ctx) 0.5)
       (.drawImage ctx basic (* 32 x) (* 32 y))
-      (set! (.-globalAlpha ctx) 1))))
+      (set! (.-globalAlpha ctx) 1)));)
 
 (defn draw-game
   [state ctx]
@@ -93,8 +94,17 @@
     (go-loop [state nil]
              (<! redraw-chan)
              (let [new-state (get-state!)]
-               (draw-game new-state ctx)
+               (when (not (= new-state state))
+                 (draw-game new-state ctx))
                (recur new-state)))))
+
+(defn start-tick-loop!
+  []
+  (go-loop []
+           (<! (timeout (/ 1000 constants/TICKS_PER_SECOND)))
+           (reset! game-atom (game/tick @game-atom))
+           (when (= (:phase @game-atom) :build)
+             (recur))))                                     ;TODO phase
 
 (defn update-mouse!
   [event]
@@ -106,16 +116,16 @@
 
 (defn mouse-pressed!
   []
-  (println (deref mouse-atom)))
+  (let [{py :y px :x} (deref mouse-atom)
+        [y x] (pixel->square py px)]
+    (swap! game-atom (fn [old] (game/attempt-build-tower old "Basic" y x)))))
 
 (rum/defc component
   []
   [:div
    [:button {:on-click (fn [] (start-draw-loop!))} "Start Game!"]
    [:button {:on-click (fn [] (reset! game-atom (game/tick @game-atom)))} "Tick!"]
-   [:button {:on-click (fn [] (js/setInterval
-                                #(reset! game-atom (game/tick @game-atom))
-                                (/ 1000 constants/TICKS_PER_SECOND)))} "Tick timer"]
+   [:button {:on-click (fn [] (start-tick-loop!))} "Tick timer"]
    [:canvas {:class       "tdgame"
              :id          "canvas0"
              :width       384

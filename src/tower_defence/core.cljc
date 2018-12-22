@@ -114,7 +114,7 @@
   [state name [y x]]
   (as-> (reduce-gold state (get-tower-cost name)) $
         (let [[new_state id] (generate-id $ "t")]
-          (force-add-tower new_state (create-tower name [y x])))))
+          (force-add-tower new_state (create-tower name [y x] :id id)))))
 
 (defn- create-waypoint
   [fromy fromx [toy tox]]
