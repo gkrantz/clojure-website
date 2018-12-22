@@ -14,7 +14,8 @@
                                         remove-dead-monsters
                                         start-monster-phase]]
             [tower-defence.helpers :refer [create-monster
-                                           create-tower]]))
+                                           create-tower
+                                           is-monster-phase?]]))
 
 (defn start-game
   []
@@ -45,7 +46,7 @@
   "A game tick during the monster phase."
   [state]
   (as-> (update state :current-tick inc) $
-        (if (= (:phase state) :monster)
+        (if (is-monster-phase? state)
           (-> $
               (all-towers-attempt-to-shoot)
               (remove-dead-monsters)

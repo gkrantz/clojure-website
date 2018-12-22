@@ -218,3 +218,11 @@
 (defn reset-current-tick
   [state]
   (assoc state :current-tick 0))
+
+(defn is-monster-phase?
+  [state]
+  (= :monster (:phase state)))
+
+(defn is-build-phase?
+  [state]
+  (= :build (:phase state)))
