@@ -32,8 +32,8 @@
 
 (defn pixel->square
   [y x]
-  ([(int (/ y SQUARE_SIZE))
-    (int (/ x SQUARE_SIZE))]))
+  [(int (/ y SQUARE_SIZE))
+   (int (/ x SQUARE_SIZE))])
 
 (defn get-height
   [state]

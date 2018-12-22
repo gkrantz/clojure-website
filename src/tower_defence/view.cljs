@@ -4,6 +4,8 @@
   (:require [rum.core :as rum]
             [tower-defence.player-api :as game]
             [tower-defence.constants :as constants]
+            [tower-defence.helpers :refer [pixel->square]]
+            [tower-defence.core :refer [can-build-tower?]]
             [cljs.core.async :refer [close! put! chan <! timeout unique alts!]]))
 
 (def game-atom (atom (game/start-game)))
@@ -67,11 +69,21 @@
   (doseq [monster (get-monsters state)]
     (.drawImage ctx blob (int (- (:x monster) 9)) (int (- (:y monster) 9)))))
 
+(defn draw-placement-helper-tower
+  [state ctx]
+  (let [{py :y px :x} (deref mouse-atom)
+        [y x] (pixel->square py px)]
+    (when (can-build-tower? state "Basic" [y x])
+      (set! (.-globalAlpha ctx) 0.5)
+      (.drawImage ctx basic (* 32 x) (* 32 y))
+      (set! (.-globalAlpha ctx) 1))))
+
 (defn draw-game
   [state ctx]
   (draw-background state ctx)
   (draw-towers state ctx)
-  (draw-monsters state ctx))
+  (draw-monsters state ctx)
+  (draw-placement-helper-tower state ctx))
 
 (defn start-draw-loop!
   []
@@ -81,8 +93,7 @@
     (go-loop [state nil]
              (<! redraw-chan)
              (let [new-state (get-state!)]
-               (when (not= state new-state)
-                 (draw-game new-state ctx))
+               (draw-game new-state ctx)
                (recur new-state)))))
 
 (defn update-mouse!
