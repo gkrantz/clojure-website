@@ -4,7 +4,9 @@
   (:require [rum.core :as rum]
             [tower-defence.player-api :as game]
             [tower-defence.constants :as constants]
-            [tower-defence.helpers :refer [pixel->square]]
+            [tower-defence.helpers :refer [pixel->square
+                                           get-towers
+                                           get-monsters]]
             [tower-defence.core :refer [can-build-tower?]]
             [cljs.core.async :refer [close! put! chan <! timeout unique alts!]]))
 
@@ -21,15 +23,6 @@
                               (range 0 width))))
           []
           (range 0 height)))
-
-(defn- get-towers
-  [state]
-  (vals (:towers state)))
-
-(defn- get-monsters
-  [state]
-  (vals (:monsters state)))
-
 (defn get-image
   [path]
   (let [img (js/Image.)]

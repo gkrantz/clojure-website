@@ -133,6 +133,10 @@
   [state id]
   (get-in state [:towers id]))
 
+(defn get-towers
+  [state id]
+  (vals (:towers state)))
+
 (defn get-rate
   [state tower]
   (let [definition (get-definition (:name tower))]
