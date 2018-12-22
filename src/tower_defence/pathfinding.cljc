@@ -1,6 +1,8 @@
 (ns tower-defence.pathfinding
   (:require [clojure.test :refer [is]]))
 
+(def empty-queue #queue [])
+
 (def neighbour-deltas
   [[-1 -1]
    [-1 1]
@@ -49,7 +51,7 @@
   "Pops from queue and adds the children of the popped element if any.
   returns a map of parent-child relations."
   {:test (fn []
-           (is (= (->> (conj clojure.lang.PersistentQueue/EMPTY [0 0])
+           (is (= (->> (conj empty-queue [0 0])
                        (iterate-queue 2 2 {}))
                   {[1 0] [0 0]
                    [1 1] [0 0]
@@ -91,7 +93,7 @@
   ([height width unwalkable]
    (find-path height width unwalkable [(- height 1) 0] [0 (- width 1)]))
   ([height width unwalkable from to]
-   (let [parents (->> (conj clojure.lang.PersistentQueue/EMPTY from)
+   (let [parents (->> (conj empty-queue from)
                       (iterate-queue height width unwalkable))]
      (when (not (nil? (get parents to)))                    ; Path found
        (get-path from parents [to])))))

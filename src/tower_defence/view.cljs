@@ -17,6 +17,10 @@
   [state]
   (vals (:towers state)))
 
+(defn- get-monsters
+  [state]
+  (vals (:monsters state)))
+
 (defn draw-background
   [state size]
   (map-indexed (fn [id [y x]]
@@ -49,10 +53,24 @@
 
 (defn draw-monsters
   [state]
-  [])
+  (map (fn [monster]
+         [:img {:key   (:id monster)
+                :src   (str "images/tower-defence/blob.png")
+                :style {:display          "inline-block"
+                        :z-index          2
+                        :position         "absolute"
+                        :transition       "0.1s"
+                        :transform        (str "translateY(" (- (:y monster) 9) "px)"
+                                               "translateX(" (- (:x monster) 9) "px)")
+                        :height           (str "18px")
+                        :width            (str "18px")
+                        :background-color "black"}}])
+       (get-monsters state)))
+
+(defonce state-atom (atom nil))
 
 (rum/defc game-component
-  [state trigger-event]
+  [state]
   (let [size constants/SQUARE_SIZE]
     [:div
      {:key   "game-div"
@@ -61,19 +79,25 @@
               :height     (str (* (:height state) size) "px")
               :width      (str (* (:width state) size) "px")}}
      (draw-background state size)
-     (draw-towers state size)]))
+     (draw-towers state size)
+     (draw-monsters state)]))
 
 (rum/defc no-game-component
   [state-atom]
   [:div {:on-click (fn []
+                     (println @state-atom)
                      (reset! state-atom (game/start-game)))}
    "Press here to start game!"])
 
-(rum/defc component
-  [state-atom trigger-event]
-  (println @state-atom)
+(rum/defc component < rum/reactive
+  []
+  ;(println @state-atom)
   [:div {:style {:width            "400px"
                  :height           "400px"
                  :background-color "green"}}
-   (if (nil? @state-atom) (no-game-component state-atom)
-                          (game-component @state-atom trigger-event))])
+   (if (nil? (rum/react state-atom)) (no-game-component state-atom)
+                          (game-component @state-atom))
+   [:button {:on-click (fn [] (swap! state-atom (fn [old] (game/tick old))))} "Tick"]
+   [:button {:on-click (fn [] (js/setInterval
+                                #(reset! state-atom (game/tick @state-atom))
+                                110))} "timer"]])

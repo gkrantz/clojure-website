@@ -5,6 +5,7 @@
             [tower-defence.helpers :refer [calculate-angle
                                            calculate-middle-of-square
                                            create-monster
+                                           create-tower
                                            damage-monster
                                            distance
                                            force-add-monster
@@ -50,27 +51,8 @@
    :phase        :build
    :level        :test
    :current-tick 0
-   :counter      1})
-
-(defn create-tower
-  "Creates a tower given a name."
-  {:test (fn [] (is (= (create-tower "Basic" [0 1])
-                       {:name     "Basic"
-                        :fired-at 0
-                        :angle    0
-                        :y        16.0
-                        :x        48.0
-                        :square   [0 1]})))}
-  [name [y x] & kvs]
-  (let [tower {:name     name
-               :fired-at 0
-               :angle    0
-               :y        (calculate-middle-of-square y)
-               :x        (calculate-middle-of-square x)
-               :square   [y x]}]
-    (if (empty? kvs)
-      tower
-      (apply assoc tower kvs))))
+   :counter      1
+   :waypoints    {}})
 
 (defn create-game
   ([]

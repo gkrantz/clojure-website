@@ -29,7 +29,7 @@
       "Home" (login-form/component)
       "Links" (links/component)
       "Games" [:div {:style {:display "inline-block"}}
-               (tower-defence/component (rum/cursor-in state-atom [:tower-defence]) handle-event)])]])
+               (tower-defence/component)])]])
 
 (defn render! [state]
   (rum/mount (app state)
