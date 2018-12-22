@@ -3,6 +3,8 @@
             [tower-defence.constants :refer [SQUARE_SIZE]]
             [clojure.test :refer [is]]))
 
+;; This namespace is for functions with low level of abstraction.
+
 (defn distance
   {:test (fn [] (is (= (distance 1 1 4 5)
                        5.0)))}
@@ -208,3 +210,11 @@
 (defn set-phase
   [state new-phase]
   (assoc state :phase new-phase))
+
+(defn monster-count
+  [state]
+  (count (get-monsters state)))
+
+(defn reset-current-tick
+  [state]
+  (assoc state :current-tick 0))

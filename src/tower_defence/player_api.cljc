@@ -3,14 +3,16 @@
             [tower-defence.definitions.monsters]
             [tower-defence.definitions.waves]
             [tower-defence.core :refer [add-monster-to-board
+                                        add-waypoints-to-state
+                                        all-towers-attempt-to-shoot
                                         attempt-to-spawn-monsters
                                         build-tower
                                         can-build-tower?
+                                        check-if-phase-over
                                         create-game
-                                        all-towers-attempt-to-shoot
-                                        remove-dead-monsters
                                         move-all-monsters
-                                        add-waypoints-to-state]]
+                                        remove-dead-monsters
+                                        start-monster-phase]]
             [tower-defence.helpers :refer [create-monster
                                            create-tower]]))
 
@@ -35,6 +37,10 @@
     (build-tower state name [y x])
     state))
 
+(defn start-monster-wave
+  [state]
+  (start-monster-phase state))
+
 (defn tick
   "A game tick during the monster phase."
   [state]
@@ -42,4 +48,5 @@
       (all-towers-attempt-to-shoot)
       (remove-dead-monsters)
       (move-all-monsters)
-      (attempt-to-spawn-monsters)))
+      (attempt-to-spawn-monsters)
+      (check-if-phase-over)))

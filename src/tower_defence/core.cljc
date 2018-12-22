@@ -33,7 +33,10 @@
                                            get-x
                                            get-y
                                            is-dead?
+                                           monster-count
+                                           set-phase
                                            reduce-gold
+                                           reset-current-tick
                                            update-monster
                                            update-tower]]
             [tower-defence.constants :refer [TICKS_PER_SECOND
@@ -307,7 +310,32 @@
           state
           (get-monsters state)))
 
+(defn win-game
+  [state]
+  (println "you won"))
+
+(defn next-wave
+  "Loads the next wave name into the state. Resets info."
+  [state]
+  (let [old-definition (get-definition (get-in state [:wave :name]))
+        new-definition (get-definition (get old-definition :next))]
+    (if (nil? new-definition)
+      (win-game state)
+      (assoc state :wave {:name             (:name new-definition)
+                          :spawned-monsters {}
+                          :finished         false}))))
+
+(defn check-if-phase-over
+  "Checks if the monster phase is over and then changes phase."
+  [state]
+  (if (and (get-in state [:wave :finished])
+           (= (monster-count state) 0))
+    (-> (set-phase state :build)
+        (next-wave))
+    state))
+
 (defn attempt-to-spawn-monsters
+  "Checks if it is time to spawn monsters. And then spawns them."
   [state]
   (let [wave-info (:wave state)
         wave-definition (get-definition (:name wave-info))
@@ -323,3 +351,19 @@
                   new-state)))
             (assoc-in state [:wave :finished] true)
             (:classes wave-definition))))
+
+(defn reset-tower-fire-timers
+  "Resets :fired-at for all towers"
+  [state]
+  (reduce (fn [new-state tower]
+            (update-tower new-state (:id tower) (fn [old]
+                                                  (assoc old :fired-at -10000))))
+          state
+          (get-towers state)))
+
+(defn start-monster-phase
+  "Changes from building phase to monster phase."
+  [state]
+  (-> (reset-tower-fire-timers state)
+      (reset-current-tick)
+      (set-phase :monster)))

@@ -96,8 +96,7 @@
   (go-loop []
            (<! (timeout (/ 1000 constants/TICKS_PER_SECOND)))
            (reset! game-atom (game/tick @game-atom))
-           (when (= (:phase @game-atom) :build)
-             (recur))))                                     ;TODO phase
+             (recur)))
 
 (defn update-mouse!
   [event]
