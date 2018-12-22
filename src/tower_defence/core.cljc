@@ -36,7 +36,8 @@
                                            reduce-gold
                                            update-monster
                                            update-tower]]
-            [tower-defence.constants :refer [TICKS_PER_SECOND]]))
+            [tower-defence.constants :refer [TICKS_PER_SECOND
+                                             MS_PER_TICK]]))
 
 (defn create-empty-state
   []
@@ -49,7 +50,9 @@
    :end          [0 11]
    :gold         100
    :lives        10
-   :wave         1
+   :wave         {:name             "wave 0"
+                  :spawned-monsters {}
+                  :finished         false}
    :phase        :build
    :level        :test
    :current-tick 0
@@ -303,3 +306,20 @@
               new_state))
           state
           (get-monsters state)))
+
+(defn attempt-to-spawn-monsters
+  [state]
+  (let [wave-info (:wave state)
+        wave-definition (get-definition (:name wave-info))
+        current-time (* (:current-tick state) MS_PER_TICK)]
+    (reduce (fn [new-state [class-name class]]
+              (let [count_ (or (get-in wave-info [:spawned-monsters class-name]) 0)]
+                (if (> (:count class) count_)
+                  (as-> (assoc-in new-state [:wave :finished] false) $
+                        (if (> (- current-time (* (:interval class) count_)) (:interval class))
+                          (-> (add-monster-to-board $ (:name class))
+                              (assoc-in [:wave :spawned-monsters class-name] (+ 1 count_)))
+                          $))
+                  new-state)))
+            (assoc-in state [:wave :finished] true)
+            (:classes wave-definition))))

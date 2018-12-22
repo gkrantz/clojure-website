@@ -204,3 +204,7 @@
 (defn is-dead?
   [monster]
   (> 0 (get-health monster)))
+
+(defn set-phase
+  [state new-phase]
+  (assoc state :phase new-phase))

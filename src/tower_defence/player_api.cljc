@@ -1,7 +1,10 @@
 (ns tower-defence.player-api
   (:require [tower-defence.definitions.towers]
             [tower-defence.definitions.monsters]
-            [tower-defence.core :refer [build-tower
+            [tower-defence.definitions.waves]
+            [tower-defence.core :refer [add-monster-to-board
+                                        attempt-to-spawn-monsters
+                                        build-tower
                                         can-build-tower?
                                         create-game
                                         all-towers-attempt-to-shoot
@@ -23,7 +26,7 @@
                                "t05" (create-tower "Basic" [8 3] :id "t05")
                                "t06" (create-tower "Basic" [9 3] :id "t06")
                                "t07" (create-tower "Basic" [10 3] :id "t07")}
-                    :monsters {"m0" (create-monster "Blob" :id "m0" :y 368.0 :x 16.0 :target-wpt-idx 0)}})
+                    :monsters {"m0" (create-monster "Blob" :id "m0" :y 336.0 :x 16.0 :target-wpt-idx 0)}})
       (add-waypoints-to-state)))
 
 (defn attempt-build-tower
@@ -38,4 +41,5 @@
   (-> (update state :current-tick inc)
       (all-towers-attempt-to-shoot)
       (remove-dead-monsters)
-      (move-all-monsters)))
+      (move-all-monsters)
+      (attempt-to-spawn-monsters)))
