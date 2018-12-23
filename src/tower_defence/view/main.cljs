@@ -80,7 +80,7 @@
 (defn draw-projectiles
   [state ctx]
   (doseq [{x :x y :y} (get-single-target-projectiles state)]
-     (.drawImage ctx projectile x y)))
+    (.drawImage ctx projectile x y)))
 
 (defn draw-game
   [state ctx]
