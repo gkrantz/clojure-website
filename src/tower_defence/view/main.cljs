@@ -35,6 +35,7 @@
 (def basic (get-image "images/tower-defence/basic.png"))
 (def blob (get-image "images/tower-defence/blob.png"))
 (def start-wave (get-image "images/tower-defence/start-wave.png"))
+(def menu-background (get-image "images/tower-defence/menu-background.png"))
 
 (defn draw-chan
   []
@@ -72,14 +73,16 @@
         [x y] (pixel->square px py)]
     (set! (.-globalAlpha ctx) 0.5)
     (.drawImage ctx basic (* 32 x) (* 32 y))
-    (set! (.-globalAlpha ctx) 1)))                          ;)
+    (set! (.-globalAlpha ctx) 1)))
 
 (defn draw-game
   [state ctx]
   (draw-background state ctx)
   (draw-towers state ctx)
   (draw-monsters state ctx)
-  (draw-placement-helper-tower state ctx))
+  (draw-placement-helper-tower state ctx)
+  (.drawImage ctx menu-background 384 0)                    ;temp
+  (buttons/draw-buttons! ctx))
 
 (defn start-draw-loop!
   []
@@ -90,8 +93,7 @@
              (<! redraw-chan)
              (let [new-state (get-state!)]
                (when (not (= new-state state))
-                 (draw-game new-state ctx)
-                 (buttons/draw-buttons! ctx))
+                 (draw-game new-state ctx))
                (recur new-state)))))
 
 (defn start-tick-loop!
