@@ -11,6 +11,7 @@
                                         check-if-phase-over
                                         create-game
                                         move-all-monsters
+                                        update-all-projectiles
                                         remove-dead-monsters
                                         start-monster-phase]]
             [tower-defence.helpers :refer [create-monster
@@ -42,12 +43,12 @@
   (start-monster-phase state))
 
 (defn tick
-  "A game tick during the monster phase."
   [state]
   (as-> (update state :current-tick inc) $
         (if (is-monster-phase? state)
           (-> $
               (all-towers-attempt-to-shoot)
+              (update-all-projectiles)
               (remove-dead-monsters)
               (move-all-monsters)
               (attempt-to-spawn-monsters)

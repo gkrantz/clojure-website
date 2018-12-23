@@ -2,7 +2,8 @@
   (:require [clojure.test :refer [is]]
             [tower-defence.definitions :refer [get-definition]]
             [tower-defence.pathfinding :refer [find-path]]
-            [tower-defence.helpers :refer [calculate-angle
+            [tower-defence.helpers :refer [add-single-target-projectile
+                                           calculate-angle
                                            calculate-middle-of-square
                                            create-monster
                                            create-tower
@@ -35,6 +36,7 @@
                                            is-dead?
                                            monster-count
                                            set-phase
+                                           reached-target?
                                            reduce-gold
                                            reset-current-tick
                                            update-monster
@@ -44,22 +46,22 @@
 
 (defn create-empty-state
   []
-  {:towers       {}
-   :monsters     {}
-   :projectiles  []
-   :width        12
+  {:width        12
    :height       12
    :start        [0 11]
    :end          [11 0]
    :gold         100
    :lives        10
+   :phase        :build
+   :level        :test
    :wave         {:name             "wave 0"
                   :spawned-monsters {}
                   :finished         false}
-   :phase        :build
-   :level        :test
    :current-tick 0
    :counter      1
+   :towers       {}
+   :monsters     {}
+   :projectiles  {:single-target []}
    :waypoints    {}})
 
 (defn create-game
@@ -276,8 +278,11 @@
 
 (defn shoot
   [state tower target]
-  (-> (damage-monster state (:id target) (get-damage state tower))
-      (update-tower (:id tower) (fn [old] (assoc old :fired-at (:current-tick state))))))
+  (as-> (get-definition (:name tower)) $
+        (:projectile $)
+        (merge $ {:x (:x tower) :y (:y tower) :target (:id target)})
+        (add-single-target-projectile state $)
+        (update-tower $ (:id tower) (fn [old] (assoc old :fired-at (:current-tick state))))))
 
 (defn attempt-to-shoot
   [state monsters tower]
@@ -368,3 +373,36 @@
       (reset-current-tick)
       (add-waypoints-to-state)
       (set-phase :monster)))
+
+(defn projectile-hit
+  [state projectile]
+  (update-monster state (:target projectile) (fn [old]
+                                               (update old :damage-taken + (:damage projectile)))))
+
+(defn move-projectile
+  [state projectile]
+  (let [speed (/ 60 TICKS_PER_SECOND)
+        target (get-monster state (:target projectile))
+        angle (calculate-angle (:x projectile) (:y projectile) (:x target) (:y target))
+        dx (* speed (Math/cos angle))
+        dy (* speed (Math/sin angle))]
+    (-> (update projectile :x + dx)
+        (update :y + dy))))
+
+(defn update-all-projectiles
+  [state]
+  (reduce (fn [new-state projectile]
+            (let [speed (/ 60 TICKS_PER_SECOND)
+                  target (get-monster state (:target projectile))
+                  angle (calculate-angle (:x projectile) (:y projectile) (:x target) (:y target))
+                  dx (* speed (Math/cos angle))
+                  dy (* speed (Math/sin angle))]
+              (if (nil? target)
+                new-state
+                (if (reached-target? projectile target)
+                  (projectile-hit new-state projectile)
+                  (as-> (update projectile :x + dx) $
+                        (update $ :y + dy)
+                        (update-in new-state [:projectiles :single-target] (fn [old] (conj old $))))))))
+          (assoc-in state [:projectiles :single-target] [])
+          (get-in state [:projectiles :single-target])))

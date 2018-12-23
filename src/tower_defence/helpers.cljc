@@ -139,6 +139,10 @@
   [state]
   (vals (:towers state)))
 
+(defn get-single-target-projectiles
+  [state]
+  (get-in state [:projectiles :single-target]))
+
 (defn get-rate
   [state tower]
   (let [definition (get-definition (:name tower))]
@@ -226,3 +230,11 @@
 (defn is-build-phase?
   [state]
   (= :build (:phase state)))
+
+(defn reached-target?
+  [projectile target]
+  (< (distance (:x projectile) (:y projectile) (:x target) (:y target)) 9))
+
+(defn add-single-target-projectile
+  [state projectile]
+  (update-in state [:projectiles :single-target] (fn [old] (conj old projectile))))

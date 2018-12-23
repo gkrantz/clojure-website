@@ -7,7 +7,8 @@
             [tower-defence.view.button-handler :as buttons]
             [tower-defence.helpers :refer [pixel->square
                                            get-towers
-                                           get-monsters]]
+                                           get-monsters
+                                           get-single-target-projectiles]]
             [tower-defence.core :refer [can-build-tower?]]
             [cljs.core.async :refer [close! put! chan <! timeout unique alts!]]))
 
@@ -36,6 +37,7 @@
 (def blob (get-image "images/tower-defence/blob.png"))
 (def start-wave (get-image "images/tower-defence/start-wave.png"))
 (def menu-background (get-image "images/tower-defence/menu-background.png"))
+(def projectile (get-image "images/tower-defence/projectile.png"))
 
 (defn draw-chan
   []
@@ -75,11 +77,17 @@
     (.drawImage ctx basic (* 32 x) (* 32 y))
     (set! (.-globalAlpha ctx) 1)))
 
+(defn draw-projectiles
+  [state ctx]
+  (doseq [{x :x y :y} (get-single-target-projectiles state)]
+     (.drawImage ctx projectile x y)))
+
 (defn draw-game
   [state ctx]
   (draw-background state ctx)
   (draw-towers state ctx)
   (draw-monsters state ctx)
+  (draw-projectiles state ctx)
   (draw-placement-helper-tower state ctx)
   (.drawImage ctx menu-background 384 0)                    ;temp
   (buttons/draw-buttons! ctx))
