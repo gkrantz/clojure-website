@@ -34,6 +34,7 @@
 (def image32x32 (get-image "images/tower-defence/32x32.png"))
 (def basic (get-image "images/tower-defence/basic.png"))
 (def blob (get-image "images/tower-defence/blob.png"))
+(def start-wave (get-image "images/tower-defence/start-wave.png"))
 
 (defn draw-chan
   []
@@ -132,7 +133,7 @@
 
 (defn start-game!
   []
-  (buttons/add-button! "start-game" {:x 385 :y 359 :width 150 :height 25 :image image32x32 :on-click #(start-wave-button-pressed)})
+  (buttons/add-button! "start-game" {:x 384 :y 359 :width 150 :height 25 :image start-wave :on-click #(start-wave-button-pressed)})
   (start-draw-loop!)
   (start-tick-loop!))
 
