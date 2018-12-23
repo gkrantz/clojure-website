@@ -47,10 +47,10 @@
   {:towers       {}
    :monsters     {}
    :projectiles  []
-   :height       12
    :width        12
-   :start        [11 0]
-   :end          [0 11]
+   :height       12
+   :start        [0 11]
+   :end          [11 0]
    :gold         100
    :lives        10
    :wave         {:name             "wave 0"
@@ -71,46 +71,46 @@
 (defn calculate-monster-path
   "Calculates the path the monsters will take in a state."
   {:test (fn []
-           (is (= (-> (create-game {:height 1
-                                    :width  3
+           (is (= (-> (create-game {:width  3
+                                    :height 1
                                     :start  [0 0]
-                                    :end    [0 2]})
-                      (force-add-tower (create-tower "Basic" [0 1]))
+                                    :end    [2 0]})
+                      (force-add-tower (create-tower "Basic" [1 0]))
                       (calculate-monster-path))
                   nil))
-           (is (= (-> (create-game {:height 1
-                                    :width  3
+           (is (= (-> (create-game {:width  3
+                                    :height 1
                                     :start  [0 0]
-                                    :end    [0 2]})
+                                    :end    [2 0]})
                       (calculate-monster-path))
-                  [[0 0] [0 1] [0 2]])))}
+                  [[0 0] [1 0] [2 0]])))}
   [state]
   (as-> (reduce (fn [unwalkables tower-location]
                   (assoc unwalkables tower-location :unwalkable))
                 {}
                 (get-tower-locations state)) $
-        (find-path (get-height state)
-                   (get-width state)
+        (find-path (get-width state)
+                   (get-height state)
                    $
                    (get-start state)
                    (get-end state))))
 
 (defn can-build-tower?
   {:test (fn []
-           (is (not (-> (create-game {:height 1
-                                      :width  3
+           (is (not (-> (create-game {:width  3
+                                      :height 1
                                       :start  [0 0]
-                                      :end    [0 2]})
-                        (can-build-tower? "Basic" [0 1]))))
-           (is (-> (create-game {:height 2
-                                 :width  3
+                                      :end    [2 0]})
+                        (can-build-tower? "Basic" [1 0]))))
+           (is (-> (create-game {:width  3
+                                 :height 2
                                  :start  [0 0]
-                                 :end    [0 2]})
-                   (can-build-tower? "Basic" [0 1]))))}
-  [state name [y x]]
-  (and (not (= [y x] (get-start state)))
-       (not (= [y x] (get-end state)))
-       (not (nil? (calculate-monster-path (force-add-tower state (create-tower "Basic" [y x])))))
+                                 :end    [2 0]})
+                   (can-build-tower? "Basic" [1 0]))))}
+  [state name [x y]]
+  (and (not (= [x y] (get-start state)))
+       (not (= [x y] (get-end state)))
+       (not (nil? (calculate-monster-path (force-add-tower state (create-tower "Basic" [x y])))))
        (>= (get-gold state) (get-tower-cost name))))
 
 (defn build-tower
@@ -118,42 +118,42 @@
   {:test (fn [] (as-> (create-empty-state) $
                       (build-tower $ "Basic" [1 1])
                       (do (is (= (get-gold $) 90)))))}
-  [state name [y x]]
+  [state name [x y]]
   (as-> (reduce-gold state (get-tower-cost name)) $
         (let [[new_state id] (generate-id $ "t")]
-          (force-add-tower new_state (create-tower name [y x] :id id)))))
+          (force-add-tower new_state (create-tower name [x y] :id id)))))
 
 (defn- create-waypoint
-  [fromy fromx [toy tox]]
+  [fromx fromy [tox toy]]
   {:x     (calculate-middle-of-square tox)
    :y     (calculate-middle-of-square toy)
-   :angle (calculate-angle fromy fromx toy tox)})
+   :angle (calculate-angle fromx fromy tox toy)})
 
 (defn add-waypoints-to-state
   {:test (fn []
            (is (= (-> (create-empty-state)
                       (add-waypoints-to-state)
                       (:waypoints))
-                  {0 {:angle (calculate-angle 1 0 0 1)
+                  {0 {:angle (calculate-angle 0 1 1 0)
                       :x     (calculate-middle-of-square 11)
                       :y     (calculate-middle-of-square 0)}}))
            (is (= (-> (create-game {:start  [0 0]
                                     :end    [1 1]
-                                    :towers {"b1" (create-tower "Basic" [0 1])}
+                                    :towers {"b1" (create-tower "Basic" [1 0])}
                                     :width  2
                                     :height 2})
                       (add-waypoints-to-state)
                       (:waypoints))
-                  {0 {:angle (calculate-angle 0 0 1 0)
-                      :y     (calculate-middle-of-square 1)
-                      :x     (calculate-middle-of-square 0)}
-                   1 {:angle (calculate-angle 1 0 1 1)
-                      :y     (calculate-middle-of-square 1)
-                      :x     (calculate-middle-of-square 1)}})))}
+                  {0 {:angle (calculate-angle 0 0 0 1)
+                      :x     (calculate-middle-of-square 0)
+                      :y     (calculate-middle-of-square 1)}
+                   1 {:angle (calculate-angle 0 1 1 1)
+                      :x     (calculate-middle-of-square 1)
+                      :y     (calculate-middle-of-square 1)}})))}
   [state]
   (as-> (calculate-monster-path state) $
-        (reduce (fn [[waypoints [fromy fromx] idx] node]
-                  (let [wpt (create-waypoint fromy fromx node)]
+        (reduce (fn [[waypoints [fromx fromy] idx] node]
+                  (let [wpt (create-waypoint fromx fromy node)]
                     (if (= (:angle (get waypoints (- idx 1)))
                            (:angle wpt))
                       [(assoc waypoints (- idx 1) wpt) node idx]
@@ -164,13 +164,13 @@
 
 (defn add-monster-to-board
   ([state name]
-   (let [[absy absx] (get-abs-start state)]
-     (add-monster-to-board state name absy absx)))
-  ([state name absy absx]
+   (let [[absx absy] (get-abs-start state)]
+     (add-monster-to-board state name absx absy)))
+  ([state name absx absy]
    (let [[new_state id] (generate-id state "m")]
      (as-> (create-monster name
-                           :y absy
                            :x absx
+                           :y absy
                            :id id
                            :target-wpt-idx 0) $
            (force-add-monster new_state $)))))
@@ -201,10 +201,10 @@
   [state id]
   (let [monster (get-monster state id)
         wpt (get-monster-wpt state id)
-        dy (Math/abs (- (:y monster) (:y wpt)))
-        dx (Math/abs (- (:x monster) (:x wpt)))]
-    (if (and (< dy 1)
-             (< dx 1))
+        dx (Math/abs (- (:x monster) (:x wpt)))
+        dy (Math/abs (- (:y monster) (:y wpt)))]
+    (if (and (< dx 1)
+             (< dy 1))
       (next-waypoint state id)
       state)))
 
@@ -212,11 +212,11 @@
   {:test (fn []
            (is (> (-> (create-game {:start     [0 0]
                                     :end       [1 1]
-                                    :height    2
                                     :width     2
-                                    :waypoints {0 {:angle (calculate-angle 0 0 1 0)
-                                                   :y     (calculate-middle-of-square 1)
-                                                   :x     (calculate-middle-of-square 0)}}})
+                                    :height    2
+                                    :waypoints {0 {:angle (calculate-angle 0 0 0 1)
+                                                   :x     (calculate-middle-of-square 0)
+                                                   :y     (calculate-middle-of-square 1)}}})
                       (add-monster-to-board "Blob")
                       (move-monster "m1")
                       (get-y "m1"))
@@ -240,18 +240,18 @@
 
 (defn find-target
   {:test (fn []
-           (is (= (-> (find-target [(create-monster "Blob" :id "b1" :y 100 :x 100)
-                                    (create-monster "Blob" :id "b2" :y 10 :x 10)] 15 15 10)
+           (is (= (-> (find-target [(create-monster "Blob" :id "b1" :x 100 :y 100)
+                                    (create-monster "Blob" :id "b2" :x 10 :y 10)] 15 15 10)
                       (:id))
                   "b2"))
            (is (= (find-target [(create-monster "Blob" :id "b1" :y 100 :x 100)] 15 15 10)
                   nil)))}
-  [monsters y x range]
+  [monsters x y range]
   (when (not (empty? monsters))
     (let [monster (first monsters)]
-      (if (<= (distance y x (:y monster) (:x monster)) range)
+      (if (<= (distance x y (:x monster) (:y monster)) range)
         monster
-        (find-target (drop 1 monsters) y x range)))))
+        (find-target (drop 1 monsters) x y range)))))
 
 (defn ready-to-shoot?
   {:test (fn []
@@ -266,13 +266,13 @@
   "Sets the angle of a tower to face a target."
   {:test (fn []
            (is (= (as-> (create-game {:towers {"t1" (create-tower "Basic" [0 0] :id "t1")}}) $
-                        (angle-tower $ (get-tower $ "t1") {:y 48.0 :x 16.0})
+                        (angle-tower $ (get-tower $ "t1") {:x 16.0 :y 48.0})
                         (get-angle $ "t1"))
                   (/ Math/PI 2))))}
   [state tower target]
   (update-tower state (:id tower)
-                (fn [old] (assoc old :angle (calculate-angle (:y tower) (:x tower)
-                                                             (:y target) (:x target))))))
+                (fn [old] (assoc old :angle (calculate-angle (:x tower) (:y tower)
+                                                             (:x target) (:y target))))))
 
 (defn shoot
   [state tower target]
@@ -281,7 +281,7 @@
 
 (defn attempt-to-shoot
   [state monsters tower]
-  (let [target (find-target monsters (:y tower) (:x tower) (get-range state tower))]
+  (let [target (find-target monsters (:x tower) (:y tower) (get-range state tower))]
     (if (not (nil? target))
       (as-> (angle-tower state tower target) $
             (if (ready-to-shoot? $ tower)

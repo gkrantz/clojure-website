@@ -4,7 +4,7 @@
             [my-website.components.links :as links]
             [my-website.events :refer [events]]
             [my-website.js-interops :refer [get-url-path]]
-            [tower-defence.view :as tower-defence]
+            [tower-defence.view.main :as tower-defence]
             [rum.core :as rum]))
 
 (enable-console-print!)

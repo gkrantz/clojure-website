@@ -8,12 +8,12 @@
 (defn distance
   {:test (fn [] (is (= (distance 1 1 4 5)
                        5.0)))}
-  [y1 x1 y2 x2]
+  [x1 y1 x2 y2]
   (Math/sqrt (+ (Math/pow (- y2 y1) 2) (Math/pow (- x2 x1) 2))))
 
 (defn calculate-angle
-  [y1 x1 y2 x2]
-  (let [dy (- y2 y1) dx (- x2 x1)]
+  [x1 y1 x2 y2]
+  (let [dx (- x2 x1) dy (- y2 y1)]
     (if (< (Math/abs dx) 0.0001)
       (if (> y2 y1)
         (/ Math/PI 2)
@@ -28,14 +28,14 @@
      (calculate-middle-of-square (first pair-or-single)
                                  (last pair-or-single))
      (* (+ pair-or-single 0.5) SQUARE_SIZE)))
-  ([y x]
-   [(* (+ y 0.5) SQUARE_SIZE)
-    (* (+ x 0.5) SQUARE_SIZE)]))
+  ([x y]
+   [(* (+ x 0.5) SQUARE_SIZE)
+    (* (+ y 0.5) SQUARE_SIZE)]))
 
 (defn pixel->square
-  [y x]
-  [(int (/ y SQUARE_SIZE))
-   (int (/ x SQUARE_SIZE))])
+  [x y]
+  [(int (/ x SQUARE_SIZE))
+   (int (/ y SQUARE_SIZE))])
 
 (defn get-height
   [state]
@@ -101,20 +101,20 @@
 
 (defn create-tower
   "Creates a tower given a name."
-  {:test (fn [] (is (= (create-tower "Basic" [0 1])
+  {:test (fn [] (is (= (create-tower "Basic" [1 0])
                        {:name     "Basic"
                         :fired-at 0
                         :angle    0
-                        :y        16.0
                         :x        48.0
-                        :square   [0 1]})))}
-  [name [y x] & kvs]
+                        :y        16.0
+                        :square   [1 0]})))}
+  [name [x y] & kvs]
   (let [tower {:name     name
                :fired-at 0
                :angle    0
-               :y        (calculate-middle-of-square y)
                :x        (calculate-middle-of-square x)
-               :square   [y x]}]
+               :y        (calculate-middle-of-square y)
+               :square   [x y]}]
     (if (empty? kvs)
       tower
       (apply assoc tower kvs))))

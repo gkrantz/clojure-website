@@ -1,9 +1,10 @@
-(ns tower-defence.view
+(ns tower-defence.view.main
   (:require-macros
     [cljs.core.async.macros :refer [go go-loop alt!]])
   (:require [rum.core :as rum]
             [tower-defence.player-api :as game]
             [tower-defence.constants :as constants]
+            [tower-defence.view.button-handler :as buttons]
             [tower-defence.helpers :refer [pixel->square
                                            get-towers
                                            get-monsters]]
@@ -15,7 +16,7 @@
 (def mouse-atom (atom {:x 0 :y 0}))
 
 (defn- get-cells
-  [height width]
+  [width height]
   (reduce (fn [a y]
             (concat a (reduce (fn [a x]
                                 (conj a [y x]))
@@ -23,6 +24,7 @@
                               (range 0 width))))
           []
           (range 0 height)))
+
 (defn get-image
   [path]
   (let [img (js/Image.)]
@@ -50,13 +52,13 @@
 (defn draw-background
   [state ctx]
   (.drawImage ctx image32x32 0 0 384 384))
-  ;(doseq [[y x] (get-cells (:height state) (:width state))]
-    ;(.drawImage ctx image32x32 (* x 32) (* y 32))))
+;(doseq [[y x] (get-cells (:height state) (:width state))]
+;(.drawImage ctx image32x32 (* x 32) (* y 32))))
 
 (defn draw-towers
   [state ctx]
   (doseq [tower (get-towers state)]
-    (.drawImage ctx basic (* (second (:square tower)) 32) (* (first (:square tower)) 32))))
+    (.drawImage ctx basic (* (first (:square tower)) 32) (* (second (:square tower)) 32))))
 
 (defn draw-monsters
   [state ctx]
@@ -65,12 +67,11 @@
 
 (defn draw-placement-helper-tower
   [state ctx]
-  (let [{py :y px :x} (deref mouse-atom)
-        [y x] (pixel->square py px)]
-    ;(when (can-build-tower? state "Basic" [y x])
-      (set! (.-globalAlpha ctx) 0.5)
-      (.drawImage ctx basic (* 32 x) (* 32 y))
-      (set! (.-globalAlpha ctx) 1)));)
+  (let [{px :x py :y} (deref mouse-atom)
+        [x y] (pixel->square px py)]
+    (set! (.-globalAlpha ctx) 0.5)
+    (.drawImage ctx basic (* 32 x) (* 32 y))
+    (set! (.-globalAlpha ctx) 1)))                          ;)
 
 (defn draw-game
   [state ctx]
@@ -88,7 +89,8 @@
              (<! redraw-chan)
              (let [new-state (get-state!)]
                (when (not (= new-state state))
-                 (draw-game new-state ctx))
+                 (draw-game new-state ctx)
+                 (buttons/draw-buttons! ctx))
                (recur new-state)))))
 
 (defn start-tick-loop!
@@ -96,37 +98,53 @@
   (go-loop []
            (<! (timeout (/ 1000 constants/TICKS_PER_SECOND)))
            (reset! game-atom (game/tick @game-atom))
-             (recur)))
+           (recur)))
 
 (defn update-mouse!
   [event]
   (let [canvas @canvas-atom
         rect (.getBoundingClientRect canvas)
-        y (- (.-clientY event) (.-top rect))
-        x (- (.-clientX event) (.-left rect))]
+        x (- (.-clientX event) (.-left rect))
+        y (- (.-clientY event) (.-top rect))]
     (reset! mouse-atom {:x x :y y})))
+
+(defn mouse-pressed-on-pixel
+  "Returns if we should continue to mouse-pressed-on-square."
+  [x y]
+  (buttons/mouse-pressed! x y)
+  true)
+
+(defn mouse-pressed-on-square
+  [x y]
+  (swap! game-atom (fn [old] (game/attempt-build-tower old "Basic" x y))))
 
 (defn mouse-pressed!
   []
-  (let [{py :y px :x} (deref mouse-atom)
-        [y x] (pixel->square py px)]
-    (swap! game-atom (fn [old] (game/attempt-build-tower old "Basic" y x)))))
+  (let [{px :x py :y} (deref mouse-atom)
+        [sqx sqy] (pixel->square px py)]
+    (when (and (mouse-pressed-on-pixel px py)
+               (<= sqx (:width @game-atom)))
+      (mouse-pressed-on-square sqx sqy))))
 
 (defn start-wave-button-pressed
   []
   (swap! game-atom (fn [old] (game/start-monster-wave old))))
 
+(defn start-game!
+  []
+  (buttons/add-button! "start-game" {:x 385 :y 359 :width 150 :height 25 :image image32x32 :on-click #(start-wave-button-pressed)})
+  (start-draw-loop!)
+  (start-tick-loop!))
+
 (rum/defc component
   []
   [:div
-   [:button {:on-click (fn [] (start-draw-loop!))} "Start Game!"]
-   [:button {:on-click (fn [] (reset! game-atom (game/tick @game-atom)))} "Tick!"]
-   [:button {:on-click (fn [] (start-tick-loop!))} "Tick timer"]
-   [:button {:on-click (fn [] (start-wave-button-pressed))} "Start wave"]
+   [:button {:on-click (fn [] (start-game!))} "Start Game!"]
    [:canvas {:class       "tdgame"
              :id          "canvas0"
-             :width       384
+             :width       534
              :height      384
-             :style       {:background-color "green"}
+             :style       {:background-color "green"
+                           :cursor           "url(images/tower-defence/cursor.png), default"}
              :onMouseMove (fn [e] (update-mouse! e))
              :onMouseDown (fn [e] (mouse-pressed!))}]])
