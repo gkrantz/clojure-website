@@ -27,7 +27,8 @@
                                "t05" (create-tower "Basic" [3 8] :id "t05")
                                "t06" (create-tower "Basic" [3 9] :id "t06")
                                "t07" (create-tower "Basic" [3 10] :id "t07")}
-                    :monsters {"m0" (create-monster "Blob" :id "m0" :x 16.0 :y 336.0 :target-wpt-idx 0)}})
+                    :monsters {"m0" (create-monster "Blob" :id "m0" :x 16.0 :y 336.0 :target-wpt-idx 0)}
+                    :gold 99999})
       (add-waypoints-to-state)))
 
 (defn attempt-build-tower

@@ -366,4 +366,5 @@
   [state]
   (-> (reset-tower-fire-timers state)
       (reset-current-tick)
+      (add-waypoints-to-state)
       (set-phase :monster)))
