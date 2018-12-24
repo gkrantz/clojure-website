@@ -9,7 +9,11 @@
              :interval 200}
    "Blob"   {:cell     3
              :count    3
-             :interval 350}})
+             :interval 500}})
+
+(def tower-sprite-definitions
+  {"Basic" {:fixed 0
+            :moving 1}})
 
 (defn get-image
   [path]
@@ -18,6 +22,7 @@
     img))
 
 (def monster-sprite-sheet (get-image "images/tower-defence/monster-sprite-sheet.png"))
+(def tower-sprite-sheet (get-image "images/tower-defence/tower-sprite-sheet.png"))
 
 (def frame-atom (atom {}))
 
@@ -32,6 +37,12 @@
 (defn cell->y
   [cell]
   0)
+
+(defn get-tower-image-args!
+  [tower]
+  (let [{fixed-cell :fixed moving-cell :moving} (get tower-sprite-definitions (:name tower))]
+    [[tower-sprite-sheet (cell->x fixed-cell) (cell->y fixed-cell) 32 32 -16 -16 32 32]
+     [tower-sprite-sheet (cell->x moving-cell) (cell->y moving-cell) 32 32 -16 -16 32 32]]))
 
 (defn get-monster-image-args!
   [monster]

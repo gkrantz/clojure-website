@@ -11,7 +11,8 @@
                                            get-single-target-projectiles]]
             [tower-defence.core :refer [can-build-tower?]]
             [tower-defence.view.sprites :refer [reset-frame-counters!
-                                                get-monster-image-args!]]
+                                                get-monster-image-args!
+                                                get-tower-image-args!]]
             [cljs.core.async :refer [close! put! chan <! timeout unique alts!]]))
 
 (def game-atom (atom (game/start-game)))
@@ -35,8 +36,6 @@
     img))
 
 (def image32x32 (get-image "images/tower-defence/32x32.png"))
-(def basic (get-image "images/tower-defence/basic.png"))
-(def blob (get-image "images/tower-defence/blob.png"))
 (def start-wave (get-image "images/tower-defence/start-wave.png"))
 (def menu-background (get-image "images/tower-defence/menu-background.png"))
 (def projectile (get-image "images/tower-defence/projectile.png"))
@@ -64,7 +63,13 @@
 (defn draw-towers
   [state ctx]
   (doseq [tower (get-towers state)]
-    (.drawImage ctx basic (* (first (:square tower)) 32) (* (second (:square tower)) 32))))
+    (let [[fixed-args moving-args] (get-tower-image-args! tower)]
+    (.save ctx)
+    (.translate ctx (:x tower) (:y tower))
+    (apply #(.drawImage ctx %1 %2 %3 %4 %5 %6 %7 %8 %9) fixed-args)
+    (.rotate ctx (:angle tower))
+    (apply #(.drawImage ctx %1 %2 %3 %4 %5 %6 %7 %8 %9) moving-args)
+    (.restore ctx))))
 
 (defn draw-monsters
   [state ctx]
@@ -80,7 +85,7 @@
   (let [{px :x py :y} (deref mouse-atom)
         [x y] (pixel->square px py)]
     (set! (.-globalAlpha ctx) 0.5)
-    (.drawImage ctx basic (* 32 x) (* 32 y))
+    (.drawImage ctx image32x32 (* 32 x) (* 32 y))
     (set! (.-globalAlpha ctx) 1)))
 
 (defn draw-projectiles
