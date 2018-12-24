@@ -6,7 +6,7 @@
                                     :name     "Blob"
                                     :interval 1000}
                        "2 spiders" {:count    2
-                                    :name     "Giant Spider"
+                                    :name     "Spider"
                                     :interval 10000}}
              :next    "wave 1"}
    "wave 1" {:classes {"10 blobs" {:count    10

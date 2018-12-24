@@ -10,6 +10,8 @@
                                            get-monsters
                                            get-single-target-projectiles]]
             [tower-defence.core :refer [can-build-tower?]]
+            [tower-defence.view.sprites :refer [reset-frame-counters!
+                                                get-monster-image-args!]]
             [cljs.core.async :refer [close! put! chan <! timeout unique alts!]]))
 
 (def game-atom (atom (game/start-game)))
@@ -67,7 +69,11 @@
 (defn draw-monsters
   [state ctx]
   (doseq [monster (get-monsters state)]
-    (.drawImage ctx blob (int (- (:x monster) 9)) (int (- (:y monster) 9)))))
+    (.save ctx)
+    (.translate ctx (:x monster) (:y monster))
+    (.rotate ctx (:angle monster))
+    (apply #(.drawImage ctx %1 %2 %3 %4 %5 %6 %7 %8 %9) (get-monster-image-args! monster))
+    (.restore ctx)))
 
 (defn draw-placement-helper-tower
   [state ctx]
@@ -139,6 +145,7 @@
 
 (defn start-wave-button-pressed
   []
+  (reset-frame-counters!)
   (swap! game-atom (fn [old] (game/start-monster-wave old))))
 
 (defn start-game!
