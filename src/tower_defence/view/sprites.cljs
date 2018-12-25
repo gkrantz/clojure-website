@@ -12,8 +12,10 @@
              :interval 500}})
 
 (def tower-sprite-definitions
-  {"Pea Shooter" {:fixed 0
-            :moving 1}})
+  {"Pea Shooter" {:fixed  0
+                  :moving 1}
+   "MGT-MK1"     {:fixed  2
+                  :moving 3}})
 
 (defn get-image
   [path]

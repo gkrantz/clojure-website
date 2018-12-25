@@ -142,7 +142,8 @@
 (defn get-tower-at
   [state x y]
   (as-> (get-towers state) $
-        (filter (fn [x]) $)))
+        (filter (fn [t] (= [x y] (:square t))) $)
+        (first $)))
 
 (defn get-single-target-projectiles
   [state]

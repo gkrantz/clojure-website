@@ -6,19 +6,25 @@
             [tower-defence.game.constants :as constants]
             [tower-defence.view.button-handler :as buttons]
             [tower-defence.game.helpers :refer [pixel->square
+                                                get-tower
+                                                get-tower-at
                                                 get-towers
                                                 get-monsters
-                                                get-single-target-projectiles]]
+                                                get-single-target-projectiles
+                                                get-damage
+                                                get-range
+                                                get-rate]]
             [tower-defence.game.core :refer [can-build-tower?]]
             [tower-defence.view.sprites :refer [reset-frame-counters!
                                                 get-monster-image-args!
                                                 get-tower-image-args!]]
-            [cljs.core.async :refer [close! put! chan <! timeout unique alts!]]))
+            [cljs.core.async :refer [close! put! chan <! timeout unique alts!]]
+            [goog.string :refer [format]]))
 
 (def game-atom (atom (game/start-game)))
 (def canvas-atom (atom nil))
 (def mouse-atom (atom {:x 0 :y 0}))
-
+(def selection-atom (atom nil))
 
 (defn- get-cells
   [width height]
@@ -55,22 +61,49 @@
   []
   (deref game-atom))
 
+(defn selection!
+  []
+  (deref selection-atom))
+
 (defn draw-background
   [state ctx]
   (.drawImage ctx image32x32 0 0 384 384))
 ;(doseq [[y x] (get-cells (:height state) (:width state))]
 ;(.drawImage ctx image32x32 (* x 32) (* y 32))))
 
+(defn draw-tower
+  [ctx tower x y]
+  (let [[fixed-args moving-args] (get-tower-image-args! tower)]
+    (.save ctx)
+    (.translate ctx x y)
+    (apply #(.drawImage ctx %1 %2 %3 %4 %5 %6 %7 %8 %9) fixed-args)
+    (.rotate ctx (:angle tower))
+    (apply #(.drawImage ctx %1 %2 %3 %4 %5 %6 %7 %8 %9) moving-args)
+    (.restore ctx)))
+
 (defn draw-towers
   [state ctx]
   (doseq [tower (get-towers state)]
-    (let [[fixed-args moving-args] (get-tower-image-args! tower)]
-      (.save ctx)
-      (.translate ctx (:x tower) (:y tower))
-      (apply #(.drawImage ctx %1 %2 %3 %4 %5 %6 %7 %8 %9) fixed-args)
-      (.rotate ctx (:angle tower))
-      (apply #(.drawImage ctx %1 %2 %3 %4 %5 %6 %7 %8 %9) moving-args)
-      (.restore ctx))))
+    (draw-tower ctx tower (:x tower) (:y tower))))
+
+(defn draw-tower-selection
+  [state ctx tower x y]
+  (.drawImage ctx image32x32 x y)
+  (draw-tower ctx tower (+ x 16) (+ y 16))
+  (set! (.-font ctx) "15px Arial")
+  (.fillText ctx (:name tower) (+ x 40) (+ y 12))
+  (.fillText ctx (str "Damage: " (get-damage state tower)) (+ x 40) (+ y 25))
+  (.fillText ctx (str "Fire rate: " (.toFixed (/ (get-rate state tower) 1000) 1) "s") (+ x 40) (+ y 38))
+  (.fillText ctx (str "Range: " (get-range state tower)) (+ x 40) (+ y 51)))
+
+(defn draw-selection!
+  [ctx x y]
+  (let [selection (selection!)
+        state @game-atom]
+    (case (:type selection)
+      nil nil
+      :blueprint nil
+      :tower (draw-tower-selection state ctx (get-tower state (:data selection)) x y))))
 
 (defn draw-monsters
   [state ctx]
@@ -85,9 +118,10 @@
   [state ctx]
   (let [{px :x py :y} (deref mouse-atom)
         [x y] (pixel->square px py)]
-    (set! (.-globalAlpha ctx) 0.5)
-    (.drawImage ctx image32x32 (* 32 x) (* 32 y))
-    (set! (.-globalAlpha ctx) 1)))
+    (when (= (:type (selection!)) :blueprint)
+      (set! (.-globalAlpha ctx) 0.5)
+      (.drawImage ctx image32x32 (* 32 x) (* 32 y))
+      (set! (.-globalAlpha ctx) 1))))
 
 (defn draw-projectiles
   [state ctx]
@@ -102,7 +136,8 @@
   (draw-projectiles state ctx)
   (draw-placement-helper-tower state ctx)
   (.drawImage ctx menu-background 384 0)                    ;temp
-  (buttons/draw-buttons! ctx))
+  (buttons/draw-buttons! ctx)
+  (draw-selection! ctx 388 5))
 
 (defn start-draw-loop!
   []
@@ -131,6 +166,10 @@
         y (- (.-clientY event) (.-top rect))]
     (reset! mouse-atom {:x x :y y})))
 
+(defn select-something!
+  [type data]
+  (reset! selection-atom {:type type :data data}))
+
 (defn mouse-pressed-on-pixel
   "Returns if we should continue to mouse-pressed-on-square."
   [x y]
@@ -139,7 +178,12 @@
 
 (defn mouse-pressed-on-square
   [x y]
-  (swap! game-atom (fn [old] (game/attempt-build-tower old "Pea Shooter" x y))))
+  (let [selection (selection!)]
+    (as-> (get-tower-at @game-atom x y) $
+          (if (nil? $)
+            (when (= (:type selection) :blueprint)
+              (swap! game-atom (fn [old] (game/attempt-build-tower old (:data selection) x y))))
+            (select-something! :tower (:id $))))))
 
 (defn mouse-pressed!
   []
@@ -164,6 +208,7 @@
   []
   [:div
    [:button {:on-click (fn [] (start-game!))} "Start Game!"]
+   [:button {:on-click (fn [] (select-something! :blueprint "Pea Shooter"))} "Build Pea Shooter"]
    [:canvas {:class       "tdgame"
              :id          "canvas0"
              :width       534
