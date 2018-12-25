@@ -138,7 +138,7 @@
 
 (defn mouse-pressed-on-square
   [x y]
-  (swap! game-atom (fn [old] (game/attempt-build-tower old "Basic" x y))))
+  (swap! game-atom (fn [old] (game/attempt-build-tower old "Pea Shooter" x y))))
 
 (defn mouse-pressed!
   []

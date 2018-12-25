@@ -12,7 +12,7 @@
              :interval 500}})
 
 (def tower-sprite-definitions
-  {"Basic" {:fixed 0
+  {"Pea Shooter" {:fixed 0
             :moving 1}})
 
 (defn get-image

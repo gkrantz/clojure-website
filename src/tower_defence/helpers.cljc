@@ -101,8 +101,8 @@
 
 (defn create-tower
   "Creates a tower given a name."
-  {:test (fn [] (is (= (create-tower "Basic" [1 0])
-                       {:name     "Basic"
+  {:test (fn [] (is (= (create-tower "Pea Shooter" [1 0])
+                       {:name     "Pea Shooter"
                         :fired-at 0
                         :angle    0
                         :x        48.0

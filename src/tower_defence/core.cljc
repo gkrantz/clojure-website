@@ -77,7 +77,7 @@
                                     :height 1
                                     :start  [0 0]
                                     :end    [2 0]})
-                      (force-add-tower (create-tower "Basic" [1 0]))
+                      (force-add-tower (create-tower "Pea Shooter" [1 0]))
                       (calculate-monster-path))
                   nil))
            (is (= (-> (create-game {:width  3
@@ -103,22 +103,22 @@
                                       :height 1
                                       :start  [0 0]
                                       :end    [2 0]})
-                        (can-build-tower? "Basic" [1 0]))))
+                        (can-build-tower? "Pea Shooter" [1 0]))))
            (is (-> (create-game {:width  3
                                  :height 2
                                  :start  [0 0]
                                  :end    [2 0]})
-                   (can-build-tower? "Basic" [1 0]))))}
+                   (can-build-tower? "Pea Shooter" [1 0]))))}
   [state name [x y]]
   (and (not (= [x y] (get-start state)))
        (not (= [x y] (get-end state)))
-       (not (nil? (calculate-monster-path (force-add-tower state (create-tower "Basic" [x y])))))
+       (not (nil? (calculate-monster-path (force-add-tower state (create-tower "Pea Shooter" [x y])))))
        (>= (get-gold state) (get-tower-cost name))))
 
 (defn build-tower
   "Builds a tower without checks."
   {:test (fn [] (as-> (create-empty-state) $
-                      (build-tower $ "Basic" [1 1])
+                      (build-tower $ "Pea Shooter" [1 1])
                       (do (is (= (get-gold $) 90)))))}
   [state name [x y]]
   (as-> (reduce-gold state (get-tower-cost name)) $
@@ -141,7 +141,7 @@
                       :y     (calculate-middle-of-square 0)}}))
            (is (= (-> (create-game {:start  [0 0]
                                     :end    [1 1]
-                                    :towers {"b1" (create-tower "Basic" [1 0])}
+                                    :towers {"b1" (create-tower "Pea Shooter" [1 0])}
                                     :width  2
                                     :height 2})
                       (add-waypoints-to-state)
@@ -258,16 +258,16 @@
 (defn ready-to-shoot?
   {:test (fn []
            (is (not (-> (create-game {:current-tick 9})
-                        (ready-to-shoot? (create-tower "Basic" [0 0])))))
-           (is (-> (create-game {:current-tick 15})
-                   (ready-to-shoot? (create-tower "Basic" [0 0])))))}
+                        (ready-to-shoot? (create-tower "Pea Shooter" [0 0])))))
+           (is (-> (create-game {:current-tick (* TICKS_PER_SECOND 2)})
+                   (ready-to-shoot? (create-tower "Pea Shooter" [0 0])))))}
   [state tower]
-  (<= (get-rate state tower) (- (:current-tick state) (:fired-at tower))))
+  (<= (get-rate state tower) (* MS_PER_TICK (- (:current-tick state) (:fired-at tower)))))
 
 (defn angle-tower
   "Sets the angle of a tower to face a target."
   {:test (fn []
-           (is (= (as-> (create-game {:towers {"t1" (create-tower "Basic" [0 0] :id "t1")}}) $
+           (is (= (as-> (create-game {:towers {"t1" (create-tower "Pea Shooter" [0 0] :id "t1")}}) $
                         (angle-tower $ (get-tower $ "t1") {:x 16.0 :y 48.0})
                         (get-angle $ "t1"))
                   (/ Math/PI 2))))}
