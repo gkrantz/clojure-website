@@ -1,22 +1,22 @@
-(ns tower-defence.player-api
-  (:require [tower-defence.definitions.towers]
-            [tower-defence.definitions.monsters]
-            [tower-defence.definitions.waves]
-            [tower-defence.core :refer [add-monster-to-board
-                                        add-waypoints-to-state
-                                        all-towers-attempt-to-shoot
-                                        attempt-to-spawn-monsters
-                                        build-tower
-                                        can-build-tower?
-                                        check-if-phase-over
-                                        create-game
-                                        move-all-monsters
-                                        update-all-projectiles
-                                        remove-dead-monsters
-                                        start-monster-phase]]
-            [tower-defence.helpers :refer [create-monster
-                                           create-tower
-                                           is-monster-phase?]]))
+(ns tower-defence.game.player-api
+  (:require [tower-defence.game.definitions.towers]
+            [tower-defence.game.definitions.monsters]
+            [tower-defence.game.definitions.waves]
+            [tower-defence.game.core :refer [add-monster-to-board
+                                             add-waypoints-to-state
+                                             all-towers-attempt-to-shoot
+                                             attempt-to-spawn-monsters
+                                             build-tower
+                                             can-build-tower?
+                                             check-if-phase-over
+                                             create-game
+                                             move-all-monsters
+                                             update-all-projectiles
+                                             remove-dead-monsters
+                                             start-monster-phase]]
+            [tower-defence.game.helpers :refer [create-monster
+                                                create-tower
+                                                is-monster-phase?]]))
 
 (defn start-game
   []
@@ -29,7 +29,7 @@
                                "t06" (create-tower "Pea Shooter" [3 9] :id "t06")
                                "t07" (create-tower "Pea Shooter" [3 10] :id "t07")}
                     :monsters {"m0" (create-monster "Blob" :id "m0" :x 16.0 :y 336.0 :target-wpt-idx 0)}
-                    :gold 99999})
+                    :gold     99999})
       (add-waypoints-to-state)))
 
 (defn attempt-build-tower

@@ -1,4 +1,4 @@
-(ns tower-defence.pathfinding
+(ns tower-defence.game.pathfinding
   (:require [clojure.test :refer [is]]))
 
 (def empty-queue

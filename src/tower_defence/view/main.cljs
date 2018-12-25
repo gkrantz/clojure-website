@@ -2,14 +2,14 @@
   (:require-macros
     [cljs.core.async.macros :refer [go go-loop alt!]])
   (:require [rum.core :as rum]
-            [tower-defence.player-api :as game]
-            [tower-defence.constants :as constants]
+            [tower-defence.game.player-api :as game]
+            [tower-defence.game.constants :as constants]
             [tower-defence.view.button-handler :as buttons]
-            [tower-defence.helpers :refer [pixel->square
-                                           get-towers
-                                           get-monsters
-                                           get-single-target-projectiles]]
-            [tower-defence.core :refer [can-build-tower?]]
+            [tower-defence.game.helpers :refer [pixel->square
+                                                get-towers
+                                                get-monsters
+                                                get-single-target-projectiles]]
+            [tower-defence.game.core :refer [can-build-tower?]]
             [tower-defence.view.sprites :refer [reset-frame-counters!
                                                 get-monster-image-args!
                                                 get-tower-image-args!]]
@@ -18,6 +18,7 @@
 (def game-atom (atom (game/start-game)))
 (def canvas-atom (atom nil))
 (def mouse-atom (atom {:x 0 :y 0}))
+
 
 (defn- get-cells
   [width height]
@@ -64,12 +65,12 @@
   [state ctx]
   (doseq [tower (get-towers state)]
     (let [[fixed-args moving-args] (get-tower-image-args! tower)]
-    (.save ctx)
-    (.translate ctx (:x tower) (:y tower))
-    (apply #(.drawImage ctx %1 %2 %3 %4 %5 %6 %7 %8 %9) fixed-args)
-    (.rotate ctx (:angle tower))
-    (apply #(.drawImage ctx %1 %2 %3 %4 %5 %6 %7 %8 %9) moving-args)
-    (.restore ctx))))
+      (.save ctx)
+      (.translate ctx (:x tower) (:y tower))
+      (apply #(.drawImage ctx %1 %2 %3 %4 %5 %6 %7 %8 %9) fixed-args)
+      (.rotate ctx (:angle tower))
+      (apply #(.drawImage ctx %1 %2 %3 %4 %5 %6 %7 %8 %9) moving-args)
+      (.restore ctx))))
 
 (defn draw-monsters
   [state ctx]

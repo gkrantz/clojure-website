@@ -1,4 +1,4 @@
-(ns tower-defence.definitions)
+(ns tower-defence.game.definitions)
 
 (defonce definitions-atom (atom {}))
 

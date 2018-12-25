@@ -1,6 +1,6 @@
-(ns tower-defence.helpers
-  (:require [tower-defence.definitions :refer [get-definition]]
-            [tower-defence.constants :refer [SQUARE_SIZE]]
+(ns tower-defence.game.helpers
+  (:require [tower-defence.game.definitions :refer [get-definition]]
+            [tower-defence.game.constants :refer [SQUARE_SIZE]]
             [clojure.test :refer [is]]))
 
 ;; This namespace is for functions with low level of abstraction.
@@ -138,6 +138,11 @@
 (defn get-towers
   [state]
   (vals (:towers state)))
+
+(defn get-tower-at
+  [state x y]
+  (as-> (get-towers state) $
+        (filter (fn [x]) $)))
 
 (defn get-single-target-projectiles
   [state]

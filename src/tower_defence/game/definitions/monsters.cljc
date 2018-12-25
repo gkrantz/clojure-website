@@ -1,5 +1,5 @@
-(ns tower-defence.definitions.monsters
-  (:require [tower-defence.definitions :as definitions]))
+(ns tower-defence.game.definitions.monsters
+  (:require [tower-defence.game.definitions :as definitions]))
 
 (def monster-definitions
   {"Blob"   {:name   "Blob"

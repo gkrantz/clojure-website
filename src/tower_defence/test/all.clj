@@ -1,8 +1,12 @@
 (ns tower-defence.test.all
   (:require [clojure.test :refer [is successful? run-tests deftest]]
-            [tower-defence.core]
-            [tower-defence.helpers]
-            [tower-defence.pathfinding]))
+            [tower-defence.game.core]
+            [tower-defence.game.helpers]
+            [tower-defence.game.pathfinding]
+            [tower-defence.game.definitions]
+            [tower-defence.game.definitions.monsters]
+            [tower-defence.game.definitions.towers]
+            [tower-defence.game.definitions.waves]))
 
 (deftest test-all
          (let [namespaces (->> (all-ns)

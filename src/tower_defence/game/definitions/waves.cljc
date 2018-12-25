@@ -1,5 +1,5 @@
-(ns tower-defence.definitions.waves
-  (:require [tower-defence.definitions :as definitions]))
+(ns tower-defence.game.definitions.waves
+  (:require [tower-defence.game.definitions :as definitions]))
 
 (def wave-definitions
   {"wave 0" {:classes {"20 blobs"  {:count    20

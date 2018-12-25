@@ -1,48 +1,48 @@
-(ns tower-defence.core
+(ns tower-defence.game.core
   (:require [clojure.test :refer [is]]
-            [tower-defence.definitions :refer [get-definition]]
-            [tower-defence.pathfinding :refer [find-path]]
-            [tower-defence.helpers :refer [add-single-target-projectile
-                                           calculate-angle
-                                           calculate-middle-of-square
-                                           create-monster
-                                           create-tower
-                                           damage-monster
-                                           distance
-                                           force-add-monster
-                                           force-add-tower
-                                           generate-id
-                                           get-abs-start
-                                           get-angle
-                                           get-damage
-                                           get-end
-                                           get-gold
-                                           get-height
-                                           get-monster
-                                           get-monsters
-                                           get-monster-ids
-                                           get-monster-wpt
-                                           get-tower
-                                           get-towers
-                                           get-range
-                                           get-rate
-                                           get-speed
-                                           get-start
-                                           get-tower-cost
-                                           get-tower-locations
-                                           get-width
-                                           get-x
-                                           get-y
-                                           is-dead?
-                                           monster-count
-                                           set-phase
-                                           reached-target?
-                                           reduce-gold
-                                           reset-current-tick
-                                           update-monster
-                                           update-tower]]
-            [tower-defence.constants :refer [TICKS_PER_SECOND
-                                             MS_PER_TICK]]))
+            [tower-defence.game.definitions :refer [get-definition]]
+            [tower-defence.game.pathfinding :refer [find-path]]
+            [tower-defence.game.helpers :refer [add-single-target-projectile
+                                                calculate-angle
+                                                calculate-middle-of-square
+                                                create-monster
+                                                create-tower
+                                                damage-monster
+                                                distance
+                                                force-add-monster
+                                                force-add-tower
+                                                generate-id
+                                                get-abs-start
+                                                get-angle
+                                                get-damage
+                                                get-end
+                                                get-gold
+                                                get-height
+                                                get-monster
+                                                get-monsters
+                                                get-monster-ids
+                                                get-monster-wpt
+                                                get-tower
+                                                get-towers
+                                                get-range
+                                                get-rate
+                                                get-speed
+                                                get-start
+                                                get-tower-cost
+                                                get-tower-locations
+                                                get-width
+                                                get-x
+                                                get-y
+                                                is-dead?
+                                                monster-count
+                                                set-phase
+                                                reached-target?
+                                                reduce-gold
+                                                reset-current-tick
+                                                update-monster
+                                                update-tower]]
+            [tower-defence.game.constants :refer [TICKS_PER_SECOND
+                                                  MS_PER_TICK]]))
 
 (defn create-empty-state
   []

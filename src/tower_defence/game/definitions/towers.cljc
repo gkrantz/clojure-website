@@ -1,5 +1,5 @@
-(ns tower-defence.definitions.towers
-  (:require [tower-defence.definitions :as definitions]))
+(ns tower-defence.game.definitions.towers
+  (:require [tower-defence.game.definitions :as definitions]))
 
 (def tower-definitions
   {"Pea Shooter" {:name       "Pea Shooter"

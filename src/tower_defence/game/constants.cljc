@@ -1,4 +1,4 @@
-(ns tower-defence.constants)
+(ns tower-defence.game.constants)
 
 (def SQUARE_SIZE 32)
 (def TICKS_PER_SECOND 24)
