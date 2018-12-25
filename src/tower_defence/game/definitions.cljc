@@ -1,14 +1,16 @@
-(ns tower-defence.game.definitions)
+(ns tower-defence.game.definitions
+  (:require [tower-defence.game.definitions.towers :refer [tower-definitions]]
+            [tower-defence.game.definitions.waves :refer [wave-definitions]]
+            [tower-defence.game.definitions.monsters :refer [monster-definitions]]))
 
-(defonce definitions-atom (atom {}))
-
-(defn add-definitions! [definitions]
-  (swap! definitions-atom merge definitions))
+(def all-definitions
+  (merge tower-definitions
+         wave-definitions
+         monster-definitions))
 
 (defn get-definition
   [name]
-  (as-> (-> (deref definitions-atom)
-            (get name)) $
+  (as-> (-> (get all-definitions name)) $
         (do (when (nil? $)
-              (println "Couldn't load definition" name ", are the definitions loaded?"))
+              (println (str "Missing definition: " name ".")))
             $)))

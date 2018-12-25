@@ -1,5 +1,4 @@
-(ns tower-defence.game.definitions.towers
-  (:require [tower-defence.game.definitions :as definitions]))
+(ns tower-defence.game.definitions.towers)
 
 (def tower-definitions
   {"Pea Shooter" {:name       "Pea Shooter"
@@ -14,5 +13,3 @@
                   :rate       100
                   :projectile {:damage 3
                                :speed  240}}})
-
-(definitions/add-definitions! tower-definitions)
