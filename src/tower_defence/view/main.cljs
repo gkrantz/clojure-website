@@ -229,7 +229,6 @@
     []
     [:div
      [:button {:on-click (fn [] (start-game!))} "Start Game!"]
-     [:button {:on-click (fn [] (select-something! :blueprint "Pea Shooter"))} "Build Pea Shooter"]
      [:canvas {:class       "tdgame"
                :id          "canvas0"
                :width       534
