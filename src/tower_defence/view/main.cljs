@@ -18,6 +18,7 @@
             [tower-defence.view.sprites :refer [reset-frame-counters!
                                                 get-monster-image-args!
                                                 get-tower-image-args!]]
+            [tower-defence.game.definitions.towers :refer [tower-definitions]]
             [cljs.core.async :refer [close! put! chan <! timeout unique alts!]]
             [goog.string :refer [format]]))
 
@@ -68,8 +69,6 @@
 (defn draw-background
   [state ctx]
   (.drawImage ctx image32x32 0 0 384 384))
-;(doseq [[y x] (get-cells (:height state) (:width state))]
-;(.drawImage ctx image32x32 (* x 32) (* y 32))))
 
 (defn draw-tower
   [ctx tower x y]
@@ -137,7 +136,7 @@
   (draw-placement-helper-tower state ctx)
   (.drawImage ctx menu-background 384 0)                    ;temp
   (buttons/draw-buttons! ctx)
-  (draw-selection! ctx 388 5))
+  (draw-selection! ctx 388 45))
 
 (defn start-draw-loop!
   []
@@ -198,9 +197,18 @@
   (reset-frame-counters!)
   (swap! game-atom (fn [old] (game/start-monster-wave old))))
 
+(defn add-menu-buttons!
+  []
+  (buttons/add-button! "start-game" {:x        384
+                                     :y        359
+                                     :width    150
+                                     :height   25
+                                     :images   [[start-wave 0 0 150 25 384 359 150 25]0]
+                                     :on-click #(start-wave-button-pressed)}))
+
 (defn start-game!
   []
-  (buttons/add-button! "start-game" {:x 384 :y 359 :width 150 :height 25 :image start-wave :on-click #(start-wave-button-pressed)})
+  (add-menu-buttons!)
   (start-draw-loop!)
   (start-tick-loop!))
 
