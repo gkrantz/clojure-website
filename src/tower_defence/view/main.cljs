@@ -189,7 +189,7 @@
   (let [{px :x py :y} (deref mouse-atom)
         [sqx sqy] (pixel->square px py)]
     (when (and (mouse-pressed-on-pixel px py)
-               (<= sqx (:width @game-atom)))
+               (< sqx (:width @game-atom)))
       (mouse-pressed-on-square sqx sqy))))
 
 (defn start-wave-button-pressed
@@ -203,25 +203,38 @@
                                      :y        359
                                      :width    150
                                      :height   25
-                                     :images   [[start-wave 0 0 150 25 384 359 150 25]0]
-                                     :on-click #(start-wave-button-pressed)}))
+                                     :images   [[start-wave 0 0 150 25 384 359 150 25]]
+                                     :on-click #(start-wave-button-pressed)})
+  (doseq [[index [_ tower]] (map-indexed vector tower-definitions)]
+    (let [x (+ 388 (* 40 index))
+          y 6]
+      (buttons/add-button! (str "build_" (:name tower)) {:x      x
+                                                         :y      y
+                                                         :width  32
+                                                         :height 32
+                                                         :on-click (fn [] (select-something! :blueprint (:name tower)))
+                                                         :images (-> (map (fn [args]
+                                                                        (-> (take 5 args)
+                                                                            (concat [x y 32 32])))
+                                                                      (get-tower-image-args! tower))
+                                                                     (conj [image32x32 0 0 32 32 x y 32 32]))}))))
 
-(defn start-game!
-  []
-  (add-menu-buttons!)
-  (start-draw-loop!)
-  (start-tick-loop!))
+  (defn start-game!
+    []
+    (add-menu-buttons!)
+    (start-draw-loop!)
+    (start-tick-loop!))
 
-(rum/defc component
-  []
-  [:div
-   [:button {:on-click (fn [] (start-game!))} "Start Game!"]
-   [:button {:on-click (fn [] (select-something! :blueprint "Pea Shooter"))} "Build Pea Shooter"]
-   [:canvas {:class       "tdgame"
-             :id          "canvas0"
-             :width       534
-             :height      384
-             :style       {:background-color "green"
-                           :cursor           "url(images/tower-defence/cursor.png), default"}
-             :onMouseMove (fn [e] (update-mouse! e))
-             :onMouseDown (fn [e] (mouse-pressed!))}]])
+  (rum/defc component
+    []
+    [:div
+     [:button {:on-click (fn [] (start-game!))} "Start Game!"]
+     [:button {:on-click (fn [] (select-something! :blueprint "Pea Shooter"))} "Build Pea Shooter"]
+     [:canvas {:class       "tdgame"
+               :id          "canvas0"
+               :width       534
+               :height      384
+               :style       {:background-color "green"
+                             :cursor           "url(images/tower-defence/cursor.png), default"}
+               :onMouseMove (fn [e] (update-mouse! e))
+               :onMouseDown (fn [e] (mouse-pressed!))}]])
