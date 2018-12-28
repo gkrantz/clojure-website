@@ -6,10 +6,15 @@
 ;; This namespace is for functions with low level of abstraction.
 
 (defn distance
-  {:test (fn [] (is (= (distance 1 1 4 5)
-                       5.0)))}
-  [x1 y1 x2 y2]
-  (Math/sqrt (+ (Math/pow (- y2 y1) 2) (Math/pow (- x2 x1) 2))))
+  {:test (fn []
+           (is (= (distance 1 1 4 5)
+                  5.0))
+           (is (= (distance {:x 1 :y 1} {:x 4 :y 5})
+                  5.0)))}
+  ([item1 item2]
+   (distance (:x item1) (:y item1) (:x item2) (:y item2)))
+  ([x1 y1 x2 y2]
+   (Math/sqrt (+ (Math/pow (- y2 y1) 2) (Math/pow (- x2 x1) 2)))))
 
 (defn calculate-angle
   [x1 y1 x2 y2]
@@ -145,9 +150,18 @@
         (filter (fn [t] (= [x y] (:square t))) $)
         (first $)))
 
+(defn get-rolling-projectiles
+  [state]
+  (get-in state [:projectiles :rolling]))
+
 (defn get-single-target-projectiles
   [state]
   (get-in state [:projectiles :single-target]))
+
+(defn get-all-projectiles
+  [state]
+  (concat (get-single-target-projectiles state)
+          (get-rolling-projectiles state)))
 
 (defn get-rate
   [state tower]
@@ -241,6 +255,18 @@
   [projectile target]
   (< (distance (:x projectile) (:y projectile) (:x target) (:y target)) 9))
 
-(defn add-single-target-projectile
-  [state projectile]
-  (update-in state [:projectiles :single-target] (fn [old] (conj old projectile))))
+(defn add-projectile
+  [state class projectile]
+  (update-in state [:projectiles class] (fn [old] (conj old projectile))))
+
+(defn in-bounds?
+  [state x y]
+  (and (> x 0)
+       (> y 0)
+       (<= x (* SQUARE_SIZE (:width state)))
+       (<= y (* SQUARE_SIZE (:height state)))))
+
+(defn collision?
+  [item1 rad1 item2 rad2]
+  (< (distance item1 item2)
+     (+ rad1 rad2)))

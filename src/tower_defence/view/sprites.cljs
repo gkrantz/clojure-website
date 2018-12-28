@@ -12,10 +12,17 @@
              :interval 500}})
 
 (def tower-sprite-definitions
-  {"Pea Shooter" {:fixed  0
-                  :moving 1}
-   "MGT-MK1"     {:fixed  2
-                  :moving 3}})
+  {"Pea Shooter" {:fixed  1
+                  :moving 2}
+   "MGT-MK1"     {:fixed  3
+                  :moving 4}
+   "Cannon"      {:fixed  0                                 ;Maybe leave as nil
+                  :moving 5}})
+
+(def projectile-sprite-definitions
+  {"Pea Fast"   0
+   "Pea Slow"   0
+   "Cannonball" 1})
 
 (defn get-image
   [path]
@@ -25,6 +32,7 @@
 
 (def monster-sprite-sheet (get-image "images/tower-defence/monster-sprite-sheet.png"))
 (def tower-sprite-sheet (get-image "images/tower-defence/tower-sprite-sheet.png"))
+(def projectile-sprite-sheet (get-image "images/tower-defence/projectile-sprite-sheet.png"))
 
 (def frame-atom (atom {}))
 
@@ -56,3 +64,8 @@
           (mod $ (:count sprite-def))
           (+ $ (:cell sprite-def))
           [monster-sprite-sheet (cell->x $) (cell->y $) 32 32 -16 -16 32 32])))
+
+(defn get-projectile-image-args!
+  [projectile]
+  (let [cell (get projectile-sprite-definitions (:name projectile))]
+    [projectile-sprite-sheet (* 7 cell) 0 7 7 -3 -3 7 7]))

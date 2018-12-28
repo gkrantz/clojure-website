@@ -5,11 +5,25 @@
                   :cost       10
                   :range      64
                   :rate       1500
-                  :projectile {:damage 10
-                               :speed  60}}
+                  :damage     10
+                  :projectile "Pea Slow"}
    "MGT-MK1"     {:name       "MGT-MK1"
                   :cost       50
                   :range      100
                   :rate       100
-                  :projectile {:damage 3
-                               :speed  240}}})
+                  :damage     3
+                  :projectile "Pea Fast"}
+   "Cannon"      {:name       "Cannon"
+                  :cost       100
+                  :range      100
+                  :rate       3000
+                  :damage     30
+                  :projectile "Cannonball"}})
+
+(def projectile-definitions
+  {"Pea Slow"   {:speed 60
+                 :class :single-target}
+   "Pea Fast"   {:speed 240
+                 :class :single-target}
+   "Cannonball" {:speed 240
+                 :class :rolling}})

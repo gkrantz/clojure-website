@@ -5,18 +5,19 @@
             [tower-defence.game.player-api :as game]
             [tower-defence.game.constants :as constants]
             [tower-defence.view.button-handler :as buttons]
-            [tower-defence.game.helpers :refer [pixel->square
+            [tower-defence.game.helpers :refer [get-all-projectiles
+                                                pixel->square
                                                 get-tower
                                                 get-tower-at
                                                 get-towers
                                                 get-monsters
-                                                get-single-target-projectiles
                                                 get-damage
                                                 get-range
                                                 get-rate]]
             [tower-defence.game.core :refer [can-build-tower?]]
             [tower-defence.view.sprites :refer [reset-frame-counters!
                                                 get-monster-image-args!
+                                                get-projectile-image-args!
                                                 get-tower-image-args!]]
             [tower-defence.game.definitions.towers :refer [tower-definitions]]
             [tower-defence.view.draw :refer [circle
@@ -52,7 +53,6 @@
 (def image32x32 (get-image "images/tower-defence/32x32.png"))
 (def start-wave (get-image "images/tower-defence/start-wave.png"))
 (def menu-background (get-image "images/tower-defence/menu-background.png"))
-(def projectile (get-image "images/tower-defence/projectile.png"))
 
 (defn get-state!
   []
@@ -92,8 +92,9 @@
   [state ctx tower x y]
   (draw-image ctx image32x32 x y)
   (draw-tower ctx tower (+ x 16) (+ y 16))
-  (set-font! ctx "15px Arial")
+  (set-font! ctx "bold 15px Arial")
   (draw-text ctx (:name tower) (+ x 40) (+ y 12))
+  (set-font! ctx "15px Arial")
   (draw-text ctx (str "Damage: " (get-damage state tower)) (+ x 40) (+ y 25))
   (draw-text ctx (str "Fire rate: " (.toFixed (/ (get-rate state tower) 1000) 1) "s") (+ x 40) (+ y 38))
   (draw-text ctx (str "Range: " (get-range state tower)) (+ x 40) (+ y 51))
@@ -128,8 +129,11 @@
 
 (defn draw-projectiles
   [state ctx]
-  (doseq [{x :x y :y} (get-single-target-projectiles state)]
-    (draw-image ctx projectile x y)))
+  (doseq [projectile (get-all-projectiles state)]
+    (save ctx)
+    (translate ctx (:x projectile) (:y projectile))
+    (apply draw-image ctx (get-projectile-image-args! projectile))
+    (restore ctx)))
 
 (defn draw-game
   [state ctx]
@@ -234,6 +238,7 @@
   []
   [:div
    [:button {:on-click (fn [] (start-game!))} "Start Game!"]
+   [:button {:on-click (fn [] (println @game-atom))} "Print state"]
    [:canvas {:class       "tdgame"
              :id          "canvas0"
              :width       534

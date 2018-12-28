@@ -2,9 +2,10 @@
   (:require [clojure.test :refer [is]]
             [tower-defence.game.definitions :refer [get-definition]]
             [tower-defence.game.pathfinding :refer [find-path]]
-            [tower-defence.game.helpers :refer [add-single-target-projectile
+            [tower-defence.game.helpers :refer [add-projectile
                                                 calculate-angle
                                                 calculate-middle-of-square
+                                                collision?
                                                 create-monster
                                                 create-tower
                                                 damage-monster
@@ -33,6 +34,7 @@
                                                 get-width
                                                 get-x
                                                 get-y
+                                                in-bounds?
                                                 is-dead?
                                                 monster-count
                                                 set-phase
@@ -278,11 +280,17 @@
 
 (defn shoot
   [state tower target]
-  (as-> (get-definition (:name tower)) $
-        (:projectile $)
-        (merge $ {:x (:x tower) :y (:y tower) :target (:id target)})
-        (add-single-target-projectile state $)
-        (update-tower $ (:id tower) (fn [old] (assoc old :fired-at (:current-tick state))))))
+  (let [name (:projectile (get-definition (:name tower)))
+        definition (get-definition name)]
+    (as-> {:name   name
+           :x      (:x tower)
+           :y      (:y tower)
+           :damage (get-damage state tower)
+           :target (case (:class definition)
+                     :rolling (calculate-angle (:x tower) (:y tower) (:x target) (:y target))
+                     :single-target (:id target))} $
+          (add-projectile state (:class definition) $)
+          (update-tower $ (:id tower) (fn [old] (assoc old :fired-at (:current-tick state)))))))
 
 (defn attempt-to-shoot
   [state monsters tower]
@@ -374,22 +382,12 @@
       (add-waypoints-to-state)
       (set-phase :monster)))
 
-(defn projectile-hit
+(defn single-target-projectile-hit
   [state projectile]
   (update-monster state (:target projectile) (fn [old]
                                                (update old :damage-taken + (:damage projectile)))))
 
-(defn move-projectile
-  [state projectile]
-  (let [speed (/ 60 TICKS_PER_SECOND)
-        target (get-monster state (:target projectile))
-        angle (calculate-angle (:x projectile) (:y projectile) (:x target) (:y target))
-        dx (* speed (Math/cos angle))
-        dy (* speed (Math/sin angle))]
-    (-> (update projectile :x + dx)
-        (update :y + dy))))
-
-(defn update-all-projectiles
+(defn update-all-single-target-projectiles
   [state]
   (reduce (fn [new-state projectile]
             (let [speed (/ 60 TICKS_PER_SECOND)
@@ -400,9 +398,43 @@
               (if (nil? target)
                 new-state
                 (if (reached-target? projectile target)
-                  (projectile-hit new-state projectile)
+                  (single-target-projectile-hit new-state projectile)
                   (as-> (update projectile :x + dx) $
                         (update $ :y + dy)
                         (update-in new-state [:projectiles :single-target] (fn [old] (conj old $))))))))
           (assoc-in state [:projectiles :single-target] [])
           (get-in state [:projectiles :single-target])))
+
+(defn attempt-rolling-projectile-hit
+  [state projectile]
+  (reduce (fn [[new-state hit-set] monster]
+            (if (and (nil? (contains? hit-set (:id monster)))
+                     (collision? projectile 3 monster 16))
+              [(damage-monster state (:id monster) (:damage projectile))
+               (conj hit-set (:id monster))]
+              [new-state hit-set]))
+          [state (:hits projectile)]
+          (get-monsters state)))
+
+(defn update-all-rolling-projectiles
+  [state]
+  (reduce (fn [new-state projectile]
+            (let [definition (get-definition (:name projectile))
+                  speed (/ (:speed definition) TICKS_PER_SECOND)
+                  angle (:target projectile)
+                  dx (* speed (Math/cos angle))
+                  dy (* speed (Math/sin angle))]
+              (if-not (in-bounds? state (:x projectile) (:y projectile))
+                new-state
+                (let [[newer-state hit-list] (attempt-rolling-projectile-hit new-state projectile)]
+                  (as-> (update projectile :x + dx) $
+                        (update $ :y + dy)
+                        (assoc $ :hits hit-list)
+                        (update-in newer-state [:projectiles :rolling] (fn [old] (conj old $))))))))
+          (assoc-in state [:projectiles :rolling] [])
+          (get-in state [:projectiles :rolling])))
+
+(defn update-all-projectiles
+  [state]
+  (-> (update-all-single-target-projectiles state)
+      (update-all-rolling-projectiles)))
