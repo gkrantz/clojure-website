@@ -19,6 +19,9 @@
                                                 get-monster-image-args!
                                                 get-tower-image-args!]]
             [tower-defence.game.definitions.towers :refer [tower-definitions]]
+            [tower-defence.view.draw :refer [circle
+                                             fill
+                                             set-global-alpha!]]
             [cljs.core.async :refer [close! put! chan <! timeout unique alts!]]
             [goog.string :refer [format]]))
 
@@ -85,6 +88,13 @@
   (doseq [tower (get-towers state)]
     (draw-tower ctx tower (:x tower) (:y tower))))
 
+(defn draw-tower-range
+  [state ctx tower]
+  (circle ctx (:x tower) (:y tower) (get-range state tower))
+  (set-global-alpha! ctx 0.3)
+  (fill ctx 0 0 200)
+  (set-global-alpha! ctx 1))
+
 (defn draw-tower-selection
   [state ctx tower x y]
   (.drawImage ctx image32x32 x y)
@@ -93,7 +103,8 @@
   (.fillText ctx (:name tower) (+ x 40) (+ y 12))
   (.fillText ctx (str "Damage: " (get-damage state tower)) (+ x 40) (+ y 25))
   (.fillText ctx (str "Fire rate: " (.toFixed (/ (get-rate state tower) 1000) 1) "s") (+ x 40) (+ y 38))
-  (.fillText ctx (str "Range: " (get-range state tower)) (+ x 40) (+ y 51)))
+  (.fillText ctx (str "Range: " (get-range state tower)) (+ x 40) (+ y 51))
+  (draw-tower-range state ctx tower))
 
 (defn draw-selection!
   [ctx x y]
@@ -118,9 +129,9 @@
   (let [{px :x py :y} (deref mouse-atom)
         [x y] (pixel->square px py)]
     (when (= (:type (selection!)) :blueprint)
-      (set! (.-globalAlpha ctx) 0.5)
+      (set-global-alpha! ctx 0.5)
       (.drawImage ctx image32x32 (* 32 x) (* 32 y))
-      (set! (.-globalAlpha ctx) 1))))
+      (set-global-alpha! ctx 1))))
 
 (defn draw-projectiles
   [state ctx]
@@ -180,8 +191,9 @@
   (let [selection (selection!)]
     (as-> (get-tower-at @game-atom x y) $
           (if (nil? $)
-            (when (= (:type selection) :blueprint)
-              (swap! game-atom (fn [old] (game/attempt-build-tower old (:data selection) x y))))
+            (if (= (:type selection) :blueprint)
+              (swap! game-atom (fn [old] (game/attempt-build-tower old (:data selection) x y)))
+              (select-something! nil nil))
             (select-something! :tower (:id $))))))
 
 (defn mouse-pressed!
