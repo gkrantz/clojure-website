@@ -213,32 +213,32 @@
   (doseq [[index [_ tower]] (map-indexed vector tower-definitions)]
     (let [x (+ 388 (* 40 index))
           y 6]
-      (buttons/add-button! (str "build_" (:name tower)) {:x      x
-                                                         :y      y
-                                                         :width  32
-                                                         :height 32
+      (buttons/add-button! (str "build_" (:name tower)) {:x        x
+                                                         :y        y
+                                                         :width    32
+                                                         :height   32
                                                          :on-click (fn [] (select-something! :blueprint (:name tower)))
-                                                         :images (-> (map (fn [args]
-                                                                        (-> (take 5 args)
-                                                                            (concat [x y 32 32])))
-                                                                      (get-tower-image-args! tower))
-                                                                     (conj [image32x32 0 0 32 32 x y 32 32]))}))))
+                                                         :images   (-> (map (fn [args]
+                                                                              (-> (take 5 args)
+                                                                                  (concat [x y 32 32])))
+                                                                            (get-tower-image-args! tower))
+                                                                       (conj [image32x32 0 0 32 32 x y 32 32]))}))))
 
-  (defn start-game!
-    []
-    (add-menu-buttons!)
-    (start-draw-loop!)
-    (start-tick-loop!))
+(defn start-game!
+  []
+  (add-menu-buttons!)
+  (start-draw-loop!)
+  (start-tick-loop!))
 
-  (rum/defc component
-    []
-    [:div
-     [:button {:on-click (fn [] (start-game!))} "Start Game!"]
-     [:canvas {:class       "tdgame"
-               :id          "canvas0"
-               :width       534
-               :height      384
-               :style       {:background-color "green"
-                             :cursor           "url(images/tower-defence/cursor.png), default"}
-               :onMouseMove (fn [e] (update-mouse! e))
-               :onMouseDown (fn [_] (mouse-pressed!))}]])
+(rum/defc component
+  []
+  [:div
+   [:button {:on-click (fn [] (start-game!))} "Start Game!"]
+   [:canvas {:class       "tdgame"
+             :id          "canvas0"
+             :width       534
+             :height      384
+             :style       {:background-color "green"
+                           :cursor           "url(images/tower-defence/cursor.png), default"}
+             :onMouseMove (fn [e] (update-mouse! e))
+             :onMouseDown (fn [_] (mouse-pressed!))}]])
