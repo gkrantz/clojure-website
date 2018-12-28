@@ -20,9 +20,18 @@
                                                 get-tower-image-args!]]
             [tower-defence.game.definitions.towers :refer [tower-definitions]]
             [tower-defence.view.draw :refer [circle
+                                             draw-chan
+                                             draw-image
+                                             draw-text
                                              fill
-                                             set-global-alpha!]]
-            [cljs.core.async :refer [close! put! chan <! timeout unique alts!]]
+                                             get-image
+                                             restore
+                                             rotate
+                                             save
+                                             set-font!
+                                             set-global-alpha!
+                                             translate]]
+            [cljs.core.async :refer [<! timeout]]
             [goog.string :refer [format]]))
 
 (def game-atom (atom (game/start-game)))
@@ -40,26 +49,10 @@
           []
           (range 0 height)))
 
-(defn get-image
-  [path]
-  (let [img (js/Image.)]
-    (aset img "src" path)
-    img))
-
 (def image32x32 (get-image "images/tower-defence/32x32.png"))
 (def start-wave (get-image "images/tower-defence/start-wave.png"))
 (def menu-background (get-image "images/tower-defence/menu-background.png"))
 (def projectile (get-image "images/tower-defence/projectile.png"))
-
-(defn draw-chan
-  []
-  (let [channel (chan)
-        request-anim #(.requestAnimationFrame js/window %)]
-    (letfn [(trigger-redraw []
-              (put! channel 1)
-              (request-anim trigger-redraw))]
-      (request-anim trigger-redraw)
-      channel)))
 
 (defn get-state!
   []
@@ -71,17 +64,17 @@
 
 (defn draw-background
   [state ctx]
-  (.drawImage ctx image32x32 0 0 384 384))
+  (draw-image ctx image32x32 0 0 384 384))
 
 (defn draw-tower
   [ctx tower x y]
   (let [[fixed-args moving-args] (get-tower-image-args! tower)]
-    (.save ctx)
-    (.translate ctx x y)
-    (apply #(.drawImage ctx %1 %2 %3 %4 %5 %6 %7 %8 %9) fixed-args)
-    (.rotate ctx (:angle tower))
-    (apply #(.drawImage ctx %1 %2 %3 %4 %5 %6 %7 %8 %9) moving-args)
-    (.restore ctx)))
+    (save ctx)
+    (translate ctx x y)
+    (apply draw-image ctx fixed-args)
+    (rotate ctx (:angle tower))
+    (apply draw-image ctx moving-args)
+    (restore ctx)))
 
 (defn draw-towers
   [state ctx]
@@ -97,13 +90,13 @@
 
 (defn draw-tower-selection
   [state ctx tower x y]
-  (.drawImage ctx image32x32 x y)
+  (draw-image ctx image32x32 x y)
   (draw-tower ctx tower (+ x 16) (+ y 16))
-  (set! (.-font ctx) "15px Arial")
-  (.fillText ctx (:name tower) (+ x 40) (+ y 12))
-  (.fillText ctx (str "Damage: " (get-damage state tower)) (+ x 40) (+ y 25))
-  (.fillText ctx (str "Fire rate: " (.toFixed (/ (get-rate state tower) 1000) 1) "s") (+ x 40) (+ y 38))
-  (.fillText ctx (str "Range: " (get-range state tower)) (+ x 40) (+ y 51))
+  (set-font! ctx "15px Arial")
+  (draw-text ctx (:name tower) (+ x 40) (+ y 12))
+  (draw-text ctx (str "Damage: " (get-damage state tower)) (+ x 40) (+ y 25))
+  (draw-text ctx (str "Fire rate: " (.toFixed (/ (get-rate state tower) 1000) 1) "s") (+ x 40) (+ y 38))
+  (draw-text ctx (str "Range: " (get-range state tower)) (+ x 40) (+ y 51))
   (draw-tower-range state ctx tower))
 
 (defn draw-selection!
@@ -118,11 +111,11 @@
 (defn draw-monsters
   [state ctx]
   (doseq [monster (get-monsters state)]
-    (.save ctx)
-    (.translate ctx (:x monster) (:y monster))
-    (.rotate ctx (:angle monster))
-    (apply #(.drawImage ctx %1 %2 %3 %4 %5 %6 %7 %8 %9) (get-monster-image-args! monster))
-    (.restore ctx)))
+    (save ctx)
+    (translate ctx (:x monster) (:y monster))
+    (rotate ctx (:angle monster))
+    (apply draw-image ctx (get-monster-image-args! monster))
+    (restore ctx)))
 
 (defn draw-placement-helper-tower
   [state ctx]
@@ -130,13 +123,13 @@
         [x y] (pixel->square px py)]
     (when (= (:type (selection!)) :blueprint)
       (set-global-alpha! ctx 0.5)
-      (.drawImage ctx image32x32 (* 32 x) (* 32 y))
+      (draw-image ctx image32x32 (* 32 x) (* 32 y))
       (set-global-alpha! ctx 1))))
 
 (defn draw-projectiles
   [state ctx]
   (doseq [{x :x y :y} (get-single-target-projectiles state)]
-    (.drawImage ctx projectile x y)))
+    (draw-image ctx projectile x y)))
 
 (defn draw-game
   [state ctx]
@@ -145,7 +138,7 @@
   (draw-monsters state ctx)
   (draw-projectiles state ctx)
   (draw-placement-helper-tower state ctx)
-  (.drawImage ctx menu-background 384 0)                    ;temp
+  (draw-image ctx menu-background 384 0)                    ;temp
   (buttons/draw-buttons! ctx)
   (draw-selection! ctx 388 45))
 
@@ -248,4 +241,4 @@
                :style       {:background-color "green"
                              :cursor           "url(images/tower-defence/cursor.png), default"}
                :onMouseMove (fn [e] (update-mouse! e))
-               :onMouseDown (fn [e] (mouse-pressed!))}]])
+               :onMouseDown (fn [_] (mouse-pressed!))}]])
