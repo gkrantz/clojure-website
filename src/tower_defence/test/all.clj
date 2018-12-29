@@ -9,9 +9,9 @@
             [tower-defence.game.definitions.waves]))
 
 (deftest test-all
-         (let [namespaces (->> (all-ns)
-                               (map str)
-                               (filter (fn [x] (re-matches #"tower-defence\..*" x)))
-                               (remove (fn [x] (= "tower-defence.test.all" x)))
-                               (map symbol))]
-           (is (successful? (time (apply run-tests namespaces))))))
+  (let [namespaces (->> (all-ns)
+                        (map str)
+                        (filter (fn [x] (re-matches #"tower-defence\..*" x)))
+                        (remove (fn [x] (= "tower-defence.test.all" x)))
+                        (map symbol))]
+    (is (successful? (time (apply run-tests namespaces))))))
