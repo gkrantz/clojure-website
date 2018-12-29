@@ -73,7 +73,7 @@
 
 (defn- get-path
   "Gets the final path given child-parent relations.
-  res should contains the 'to' coordinates"
+  res should contain the end coordinates"
   ([from parents res]
    (let [to (first res)]
      (if (= from to)
