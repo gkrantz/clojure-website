@@ -18,6 +18,7 @@
                                                 get-damage
                                                 get-end
                                                 get-gold
+                                                get-health
                                                 get-height
                                                 get-monster
                                                 get-monsters
@@ -304,9 +305,24 @@
 
 (defn all-towers-attempt-to-shoot
   [state]
-  (let [monsters (get-monsters state)
-        towers (get-towers state)]
-    (reduce (fn [new-state tower] (attempt-to-shoot new-state monsters tower)) state towers)))
+  (let [low-hp (sort-by get-health (get-monsters state))
+        high-hp (reverse low-hp)
+        last (sort-by (fn [monster]
+                        [(:target-wpt-idx monster)
+                         (->> (get-monster-wpt state (:target-wpt-idx monster))
+                              (distance monster)
+                              (- 0))])
+                      high-hp)
+        first (reverse last)]
+    (reduce (fn [new-state tower]
+              (as-> (case (:priority tower)
+                      :low-hp low-hp
+                      :high-hp high-hp
+                      :last last
+                      :first first) $
+                    (attempt-to-shoot new-state $ tower)))
+            state
+            (get-towers state))))
 
 (defn remove-dead-monsters
   {:test (fn [] (is (= (-> (create-game {:monsters {"m1" (create-monster "Blob" :id "m1" :damage-taken 300)

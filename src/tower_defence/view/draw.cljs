@@ -26,6 +26,17 @@
   ([ctx image sx sy swidth sheight dx dy dwidth dheight]
    (.drawImage ctx image sx sy swidth sheight dx dy dwidth dheight)))
 
+(defn set-fill-style!
+  [ctx style]
+  (set! (.-fillStyle ctx) style))
+
+(defn fill-rect
+  [ctx style x y width height]
+  (save ctx)
+  (set-fill-style! ctx style)
+  (.fillRect ctx x y width height)
+  (restore ctx))
+
 (defn draw-text
   [ctx text x y]
   (.fillText ctx text x y))
@@ -43,7 +54,7 @@
 (defn fill
   [ctx r g b]
   (save ctx)
-  (set! (.-fillStyle ctx) (str "rgb(" r ", " g ", " b ")"))
+  (set-fill-style! ctx (str "rgb(" r ", " g ", " b ")"))
   (.fill ctx)
   (restore ctx))
 

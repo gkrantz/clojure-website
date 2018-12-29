@@ -16,8 +16,7 @@
   "Draws all visible buttons."
   [ctx]
   (doseq [button (vals @button-atom)]
-      (doseq [image-args (:images button)]
-        (apply #(.drawImage ctx %1 %2 %3 %4 %5 %6 %7 %8 %9) image-args))))
+    ((:draw-fn button) ctx)))
 
 (defn- inside-rect?
   [x y rx ry rwidth rheight]

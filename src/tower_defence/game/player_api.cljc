@@ -14,7 +14,8 @@
                                              start-monster-phase]]
             [tower-defence.game.helpers :refer [create-monster
                                                 create-tower
-                                                is-monster-phase?]]))
+                                                is-monster-phase?
+                                                update-tower]]))
 
 (defn start-game
   []
@@ -52,3 +53,7 @@
               (attempt-to-spawn-monsters)
               (check-if-phase-over))
           $)))
+
+(defn change-tower-priority
+  [state id priority]
+  (update-tower state id (fn [old] (assoc old :priority priority))))

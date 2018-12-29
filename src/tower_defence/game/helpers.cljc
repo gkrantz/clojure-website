@@ -112,14 +112,16 @@
                         :angle    0
                         :x        48.0
                         :y        16.0
-                        :square   [1 0]})))}
+                        :square   [1 0]
+                        :priority :first})))}
   [name [x y] & kvs]
   (let [tower {:name     name
                :fired-at 0
                :angle    0
                :x        (calculate-middle-of-square x)
                :y        (calculate-middle-of-square y)
-               :square   [x y]}]
+               :square   [x y]
+               :priority :first}]
     (if (empty? kvs)
       tower
       (apply assoc tower kvs))))

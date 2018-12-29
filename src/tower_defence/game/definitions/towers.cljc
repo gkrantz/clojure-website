@@ -25,5 +25,5 @@
                  :class :single-target}
    "Pea Fast"   {:speed 240
                  :class :single-target}
-   "Cannonball" {:speed 240
+   "Cannonball" {:speed 180
                  :class :rolling}})
