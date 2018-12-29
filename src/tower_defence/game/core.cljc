@@ -422,14 +422,20 @@
           (get-in state [:projectiles :single-target])))
 
 (defn attempt-rolling-projectile-hit
+  {:test (fn [] (is (= (-> (create-game {:monsters {"m1" (create-monster "Blob" :id "m1" :x 0 :y 0)}})
+                           (attempt-rolling-projectile-hit {:x 0 :y 0 :damage 30})
+                           (first)
+                           (get-monster "m1")
+                           (:damage-taken))
+                       30)))}
   [state projectile]
   (reduce (fn [[new-state hit-set] monster]
-            (if (and (nil? (contains? hit-set (:id monster)))
+            (if (and (not (contains? hit-set (:id monster)))
                      (collision? projectile 3 monster 16))
               [(damage-monster state (:id monster) (:damage projectile))
                (conj hit-set (:id monster))]
               [new-state hit-set]))
-          [state (:hits projectile)]
+          [state (or (:hits projectile) #{})]
           (get-monsters state)))
 
 (defn update-all-rolling-projectiles
