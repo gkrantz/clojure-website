@@ -15,24 +15,24 @@
    [0 -1]
    [0 1]])
 
-(defn visited?
+(defn- visited?
   [x y parents]
   (not (nil? (get parents [x y]))))
 
-(defn in-bounds?
+(defn- in-bounds?
   [x y height width]
   (and (>= x 0)
        (>= y 0)
        (< x width)
        (< y height)))
 
-(defn walkable?
+(defn- walkable?
   [x y height width parents]
   (and
     (in-bounds? x y width height)
     (not (= (get parents [x y]) :unwalkable))))
 
-(defn add-children
+(defn- add-children
   "Adds children of a square to the queue and their parent-child relation to the map."
   [x y width height parents queue]
   (reduce (fn [[parents_ queue_] [dx dy]]
@@ -50,7 +50,7 @@
           [parents queue]
           neighbour-deltas))
 
-(defn iterate-queue
+(defn- iterate-queue
   "Pops from queue and adds the children of the popped element if any.
   returns a map of parent-child relations."
   {:test (fn []
@@ -71,7 +71,7 @@
                                             parents (pop queue))]
         (iterate-queue width height parents_ queue_)))))
 
-(defn get-path
+(defn- get-path
   "Gets the final path given child-parent relations.
   res should contains the 'to' coordinates"
   ([from parents res]
