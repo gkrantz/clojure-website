@@ -59,7 +59,7 @@
                   {[0 1] [0 0]
                    [1 1] [0 0]
                    [1 0] [0 0]
-                   [0 0] [1 1]
+                   [0 0] [1 0]
                    ; start square gets a useless parent
                    })))}
   [width height parents queue]
