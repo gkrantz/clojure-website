@@ -18,7 +18,13 @@
                   :range      100
                   :rate       3000
                   :damage     30
-                  :projectile "Cannonball"}})
+                  :projectile "Cannonball"}
+   "Snow Cannon" {:name       "Snow Cannon"
+                  :cost       200
+                  :range      70
+                  :rate       5000
+                  :damage     100000
+                  :projectile "Snowball"}})
 
 (def projectile-definitions
   {"Pea Slow"   {:speed 60
@@ -26,4 +32,7 @@
    "Pea Fast"   {:speed 240
                  :class :single-target}
    "Cannonball" {:speed 180
-                 :class :rolling}})
+                 :class :rolling}
+   "Snowball"   {:speed            120
+                 :class            :explosive
+                 :explosion-radius 40}})

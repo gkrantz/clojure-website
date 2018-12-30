@@ -17,12 +17,15 @@
    "MGT-MK1"     {:fixed  3
                   :moving 4}
    "Cannon"      {:fixed  0                                 ;Maybe leave as nil
-                  :moving 5}})
+                  :moving 5}
+   "Snow Cannon" {:fixed  6
+                  :moving 7}})
 
 (def projectile-sprite-definitions
   {"Pea Fast"   0
    "Pea Slow"   0
-   "Cannonball" 1})
+   "Cannonball" 1
+   "Snowball"   1})
 
 (defn get-image
   [path]

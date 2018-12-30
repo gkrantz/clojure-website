@@ -33,6 +33,7 @@
                                                 get-tower-cost
                                                 get-tower-locations
                                                 get-width
+                                                get-wpt
                                                 get-x
                                                 get-y
                                                 in-bounds?
@@ -64,7 +65,7 @@
    :counter      1
    :towers       {}
    :monsters     {}
-   :projectiles  {:single-target []}
+   :projectiles  {}
    :waypoints    {}})
 
 (defn create-game
@@ -288,6 +289,7 @@
            :y      (:y tower)
            :damage (get-damage state tower)
            :target (case (:class definition)
+                     :explosive (select-keys target [:x :y])
                      :rolling (calculate-angle (:x tower) (:y tower) (:x target) (:y target))
                      :single-target (:id target))} $
           (add-projectile state (:class definition) $)
@@ -309,7 +311,7 @@
         high-hp (reverse low-hp)
         last (sort-by (fn [monster]
                         [(:target-wpt-idx monster)
-                         (->> (get-monster-wpt state (:target-wpt-idx monster))
+                         (->> (get-wpt state (:target-wpt-idx monster))
                               (distance monster)
                               (- 0))])
                       high-hp)
@@ -421,6 +423,32 @@
           (assoc-in state [:projectiles :single-target] [])
           (get-in state [:projectiles :single-target])))
 
+(defn explosive-projectile-hit
+  [state projectile]
+  (let [definition (get-definition projectile)]
+    (reduce (fn [new-state monster]
+              (if (<= (distance projectile monster) (:explosion-radius definition))
+                (damage-monster new-state (:id monster) (:damage projectile))
+                new-state))
+            state
+            (get-monsters state))))
+
+(defn update-all-explosive-projectiles
+  [state]
+  (reduce (fn [new-state projectile]
+            (let [speed (/ 60 TICKS_PER_SECOND)
+                  target (:target projectile)
+                  angle (calculate-angle (:x projectile) (:y projectile) (:x target) (:y target))
+                  dx (* speed (Math/cos angle))
+                  dy (* speed (Math/sin angle))]
+                (if (reached-target? projectile target)
+                  (explosive-projectile-hit new-state projectile)
+                  (as-> (update projectile :x + dx) $
+                        (update $ :y + dy)
+                        (update-in new-state [:projectiles :explosive] (fn [old] (conj old $)))))))
+          (assoc-in state [:projectiles :explosive] [])
+          (get-in state [:projectiles :explosive])))
+
 (defn attempt-rolling-projectile-hit
   {:test (fn [] (is (= (-> (create-game {:monsters {"m1" (create-monster "Blob" :id "m1" :x 0 :y 0)}})
                            (attempt-rolling-projectile-hit {:x 0 :y 0 :damage 30})
@@ -459,4 +487,5 @@
 (defn update-all-projectiles
   [state]
   (-> (update-all-single-target-projectiles state)
-      (update-all-rolling-projectiles)))
+      (update-all-rolling-projectiles)
+      (update-all-explosive-projectiles)))

@@ -250,25 +250,25 @@
                                                                                          (apply draw-image ctx $)))))})))
   (buttons/add-button! "first" {:x        387
                                 :y        100
-                                :width    144
+                                :width    36
                                 :height   11
                                 :on-click (fn [] (change-tower-priority! :first))
                                 :draw-fn  (get-priority-button-draw-fn! [priority-buttons 0 0 36 11 387 100 36 11] :first)})
   (buttons/add-button! "last" {:x        423
                                :y        100
-                               :width    144
+                               :width    36
                                :height   11
                                :on-click (fn [] (change-tower-priority! :last))
                                :draw-fn  (get-priority-button-draw-fn! [priority-buttons 36 0 36 11 423 100 36 11] :last)})
   (buttons/add-button! "low-hp" {:x        459
                                  :y        100
-                                 :width    144
+                                 :width    36
                                  :height   11
                                  :on-click (fn [] (change-tower-priority! :low-hp))
                                  :draw-fn  (get-priority-button-draw-fn! [priority-buttons 72 0 36 11 459 100 36 11] :low-hp)})
   (buttons/add-button! "high-hp" {:x        495
                                   :y        100
-                                  :width    144
+                                  :width    36
                                   :height   11
                                   :on-click (fn [] (change-tower-priority! :high-hp))
                                   :draw-fn  (get-priority-button-draw-fn! [priority-buttons 108 0 36 11 495 100 36 11] :high-hp)}))

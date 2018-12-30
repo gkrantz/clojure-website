@@ -160,10 +160,15 @@
   [state]
   (get-in state [:projectiles :single-target]))
 
+(defn get-explosive-projectiles
+  [state]
+  (get-in state [:projectiles :explosive]))
+
 (defn get-all-projectiles
   [state]
   (concat (get-single-target-projectiles state)
-          (get-rolling-projectiles state)))
+          (get-rolling-projectiles state)
+          (get-explosive-projectiles state)))
 
 (defn get-rate
   [state tower]
@@ -190,10 +195,13 @@
   [state id]
   (get-in state [:monsters id :y]))
 
+(defn get-wpt
+  [state idx]
+  (get-in state [:waypoints idx]))
+
 (defn get-monster-wpt
   [state id]
-  (as-> (get-monster state id) $
-        (get-in state [:waypoints (:target-wpt-idx $)])))
+  (get-wpt state (:target-wpt-idx (get-monster state id))))
 
 (defn get-angle
   [state id]

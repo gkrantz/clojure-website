@@ -11,8 +11,10 @@
          projectile-definitions))
 
 (defn get-definition
-  [name]
-  (as-> (-> (get all-definitions name)) $
-        (do (when (nil? $)
-              (println (str "Missing definition: " name ".")))
-            $)))
+  [name-or-map]
+  (if (map? name-or-map)
+    (get-definition (:name name-or-map))
+    (as-> (-> (get all-definitions name-or-map)) $
+          (do (when (nil? $)
+                (println (str "Missing definition: " name-or-map ".")))
+              $))))
