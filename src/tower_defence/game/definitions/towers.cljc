@@ -27,9 +27,9 @@
                   :projectile "Snowball"}})
 
 (def projectile-definitions
-  {"Pea Slow"   {:speed 60
+  {"Pea Slow"   {:speed 100
                  :class :single-target}
-   "Pea Fast"   {:speed 240
+   "Pea Fast"   {:speed 180
                  :class :single-target}
    "Cannonball" {:speed 180
                  :class :rolling}

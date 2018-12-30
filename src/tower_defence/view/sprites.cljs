@@ -9,7 +9,10 @@
              :interval 200}
    "Blob"   {:cell     3
              :count    3
-             :interval 500}})
+             :interval 500}
+   "Bug"    {:cell     6
+             :count    2
+             :interval 150}})
 
 (def tower-sprite-definitions
   {"Pea Shooter" {:fixed  1
