@@ -236,7 +236,7 @@
                                      :draw-fn  (fn [ctx] (draw-image ctx start-wave 0 0 150 25 384 359 150 25))
                                      :on-click #(start-wave-button-pressed)})
   (doseq [[index [_ tower]] (map-indexed vector tower-definitions)]
-    (let [x (+ 388 (* 40 index))
+    (let [x (+ 388 (* 36 index))
           y 6]
       (buttons/add-button! (str "build_" (:name tower)) {:x        x
                                                          :y        y
