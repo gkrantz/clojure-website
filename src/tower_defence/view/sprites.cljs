@@ -15,7 +15,10 @@
                  :interval 150}
    "War Turtle" {:cell     8
                  :count    4
-                 :interval 300}})
+                 :interval 300}
+   "Rat"        {:cell     12
+                 :count    4
+                 :interval 150}})
 
 (def tower-sprite-definitions
   {"Pea Shooter" {:fixed  1

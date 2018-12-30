@@ -12,4 +12,7 @@
                  :speed  50}
    "War Turtle" {:name   "War Turtle"
                  :health 10000
-                 :speed  5}})
+                 :speed  5}
+   "Rat"        {:name   "Rat"
+                 :health 40
+                 :speed  40}})
