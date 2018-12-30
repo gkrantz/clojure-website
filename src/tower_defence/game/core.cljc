@@ -408,7 +408,8 @@
 (defn update-all-single-target-projectiles
   [state]
   (reduce (fn [new-state projectile]
-            (let [speed (/ 60 TICKS_PER_SECOND)
+            (let [definition (get-definition projectile)
+                  speed (/ (:speed definition) TICKS_PER_SECOND)
                   target (get-monster state (:target projectile))
                   angle (calculate-angle (:x projectile) (:y projectile) (:x target) (:y target))
                   dx (* speed (Math/cos angle))
@@ -436,7 +437,8 @@
 (defn update-all-explosive-projectiles
   [state]
   (reduce (fn [new-state projectile]
-            (let [speed (/ 60 TICKS_PER_SECOND)
+            (let [definition (get-definition projectile)
+                  speed (/ (:speed definition) TICKS_PER_SECOND)
                   target (:target projectile)
                   angle (calculate-angle (:x projectile) (:y projectile) (:x target) (:y target))
                   dx (* speed (Math/cos angle))
