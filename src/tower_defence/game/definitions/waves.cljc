@@ -18,4 +18,8 @@
    "wave 2" {:classes {"20 spiders" {:count    20
                                      :name     "Spider"
                                      :interval 500}}
-             :next    "none"}})
+             :next    "wave 3"}
+   "wave 3" {:classes {"1 war turtle" {:count    1
+                                       :name     "War Turtle"
+                                       :interval 1000}}
+             :next    "wave 0"}})

@@ -4,15 +4,18 @@
 (def MS_PER_TICK (/ 1000 TICKS_PER_SECOND))
 
 (def monster-sprite-definitions
-  {"Spider" {:cell     0
-             :count    3
-             :interval 200}
-   "Blob"   {:cell     3
-             :count    3
-             :interval 500}
-   "Bug"    {:cell     6
-             :count    2
-             :interval 150}})
+  {"Spider"     {:cell     0
+                 :count    3
+                 :interval 200}
+   "Blob"       {:cell     3
+                 :count    3
+                 :interval 500}
+   "Bug"        {:cell     6
+                 :count    2
+                 :interval 150}
+   "War Turtle" {:cell     8
+                 :count    4
+                 :interval 300}})
 
 (def tower-sprite-definitions
   {"Pea Shooter" {:fixed  1
