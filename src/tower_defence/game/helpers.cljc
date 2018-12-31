@@ -280,3 +280,11 @@
   [item1 rad1 item2 rad2]
   (< (distance item1 item2)
      (+ rad1 rad2)))
+
+(defn clear-projectile-hits
+  [state]
+  (assoc-in state [:projectiles :hits-this-turn] []))
+
+(defn add-projectile-hit
+  [state projectile]
+  (update-in state [:projectiles :hits-this-turn] conj projectile))

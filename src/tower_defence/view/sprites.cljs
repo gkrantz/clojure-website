@@ -36,6 +36,11 @@
    "Cannonball" 1
    "Snowball"   1})
 
+(def animation-definitions
+  {"Snowball"   {:start 0
+                 :count 4
+                 :interval 100}})
+
 (defn get-image
   [path]
   (let [img (js/Image.)]
@@ -45,6 +50,7 @@
 (def monster-sprite-sheet (get-image "images/tower-defence/monster-sprite-sheet.png"))
 (def tower-sprite-sheet (get-image "images/tower-defence/tower-sprite-sheet.png"))
 (def projectile-sprite-sheet (get-image "images/tower-defence/projectile-sprite-sheet.png"))
+(def animation-sprite-sheet (get-image "images/tower-defence/animation-sprite-sheet.png"))
 
 (def frame-atom (atom {}))
 
@@ -81,3 +87,11 @@
   [projectile]
   (let [cell (get projectile-sprite-definitions (:name projectile))]
     [projectile-sprite-sheet (* 7 cell) 0 7 7 -3 -3 7 7]))
+
+(defn get-animation-image-args!
+  [animation-data]
+  (let [sprite-def (get animation-definitions (:name animation-data))]
+    (as-> (int (/ (:elapsed-time animation-data) (:interval sprite-def))) $
+          (when (< $ (:count sprite-def))
+            (as-> (+ $ (:start sprite-def)) $
+                  [animation-sprite-sheet (cell->x $) (cell->y $) 32 32 -16 -16 32 32])))))

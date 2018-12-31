@@ -12,7 +12,8 @@
                                              update-all-projectiles
                                              remove-dead-monsters
                                              start-monster-phase]]
-            [tower-defence.game.helpers :refer [create-monster
+            [tower-defence.game.helpers :refer [clear-projectile-hits
+                                                create-monster
                                                 create-tower
                                                 is-monster-phase?
                                                 update-tower]]))
@@ -44,6 +45,7 @@
 (defn tick
   [state]
   (as-> (update state :current-tick inc) $
+        (clear-projectile-hits $)
         (if (is-monster-phase? state)
           (-> $
               (all-towers-attempt-to-shoot)

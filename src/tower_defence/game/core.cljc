@@ -3,6 +3,7 @@
             [tower-defence.game.definitions :refer [get-definition]]
             [tower-defence.game.pathfinding :refer [find-path]]
             [tower-defence.game.helpers :refer [add-projectile
+                                                add-projectile-hit
                                                 calculate-angle
                                                 calculate-middle-of-square
                                                 collision?
@@ -427,12 +428,12 @@
 (defn explosive-projectile-hit
   [state projectile]
   (let [definition (get-definition projectile)]
-    (reduce (fn [new-state monster]
-              (if (<= (distance projectile monster) (:explosion-radius definition))
-                (damage-monster new-state (:id monster) (:damage projectile))
-                new-state))
-            state
-            (get-monsters state))))
+        (reduce (fn [new-state monster]
+                  (if (<= (distance projectile monster) (:explosion-radius definition))
+                    (damage-monster new-state (:id monster) (:damage projectile))
+                    new-state))
+                (add-projectile-hit state projectile)
+                (get-monsters state))))
 
 (defn update-all-explosive-projectiles
   [state]
@@ -443,11 +444,11 @@
                   angle (calculate-angle (:x projectile) (:y projectile) (:x target) (:y target))
                   dx (* speed (Math/cos angle))
                   dy (* speed (Math/sin angle))]
-                (if (reached-target? projectile target)
-                  (explosive-projectile-hit new-state projectile)
-                  (as-> (update projectile :x + dx) $
-                        (update $ :y + dy)
-                        (update-in new-state [:projectiles :explosive] (fn [old] (conj old $)))))))
+              (if (reached-target? projectile target)
+                (explosive-projectile-hit new-state projectile)
+                (as-> (update projectile :x + dx) $
+                      (update $ :y + dy)
+                      (update-in new-state [:projectiles :explosive] (fn [old] (conj old $)))))))
           (assoc-in state [:projectiles :explosive] [])
           (get-in state [:projectiles :explosive])))
 

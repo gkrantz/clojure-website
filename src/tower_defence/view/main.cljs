@@ -16,6 +16,7 @@
                                                 get-rate]]
             [tower-defence.game.core :refer [can-build-tower?]]
             [tower-defence.view.sprites :refer [reset-frame-counters!
+                                                get-animation-image-args!
                                                 get-monster-image-args!
                                                 get-projectile-image-args!
                                                 get-tower-image-args!]]
@@ -40,6 +41,7 @@
 (def canvas-atom (atom nil))
 (def mouse-atom (atom {:x 0 :y 0}))
 (def selection-atom (atom nil))
+(def animation-atom (atom []))
 
 (defn- get-cells
   [width height]
@@ -137,6 +139,34 @@
     (apply draw-image ctx (get-projectile-image-args! projectile))
     (restore ctx)))
 
+(defn add-all-pending-animations!
+  "Adds animations (currently explosive projectiles only)
+  to be drawn until completed."
+  [state]
+  (doseq [projectile (get-in state [:projectiles :hits-this-turn])]
+    (as-> (:target projectile) $
+          (assoc $ :name (:name projectile))
+          (swap! animation-atom conj $))))
+
+(defn draw-animations!
+  "Draws and updates all current animations."
+  [ctx]
+  (as-> (reduce (fn [new-list animation]
+                  (let [args (get-animation-image-args! animation)]
+                    (if (nil? args)
+                      new-list
+                      (do (save ctx)
+                          (translate ctx (:x animation) (:y animation))
+                          (apply draw-image ctx args)
+                          (restore ctx)
+                          (as-> (:elapsed-time animation) $
+                                (+ $ constants/MS_PER_TICK)
+                                (assoc animation :elapsed-time $)
+                                (conj new-list $))))))
+                []
+                @animation-atom) $
+        (reset! animation-atom $)))
+
 (defn draw-game
   [state ctx]
   (draw-background state ctx)
@@ -146,7 +176,8 @@
   (draw-placement-helper-tower state ctx)
   (draw-image ctx menu-background 384 0)                    ;temp
   (buttons/draw-buttons! ctx)
-  (draw-selection! ctx 388 45))
+  (draw-selection! ctx 388 45)
+  (draw-animations! ctx))
 
 (defn start-draw-loop!
   []
@@ -164,6 +195,7 @@
   []
   (go-loop []
            (<! (timeout (/ 1000 constants/TICKS_PER_SECOND)))
+           (add-all-pending-animations! @game-atom)
            (reset! game-atom (game/tick @game-atom))
            (recur)))
 
