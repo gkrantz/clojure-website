@@ -200,10 +200,13 @@
 
 (defn next-waypoint
   "Increments the target waypoint for a monster."
-  [state id]
+  [state id wpt]
   (if (= (:target-wpt-idx (get-monster state id)) (- (count (:waypoints state)) 1))
     (monster-reached-end state id)
-    (update-monster state id (fn [m] (update m :target-wpt-idx inc)))))
+    (update-monster state id (fn [m]
+                               (-> (assoc m :x (:x wpt))
+                                   (assoc :y (:y wpt))
+                                   (update :target-wpt-idx inc))))))
 
 (defn check-waypoint
   [state id]
@@ -211,9 +214,9 @@
         wpt (get-monster-wpt state id)
         dx (Math/abs (- (:x monster) (:x wpt)))
         dy (Math/abs (- (:y monster) (:y wpt)))]
-    (if (and (< dx 1)
-             (< dy 1))
-      (next-waypoint state id)
+    (if (and (< dx 2)
+             (< dy 2))
+      (next-waypoint state id wpt)
       state)))
 
 (defn move-monster
