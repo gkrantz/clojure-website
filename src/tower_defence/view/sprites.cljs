@@ -21,25 +21,28 @@
                  :interval 150}})
 
 (def tower-sprite-definitions
-  {"Pea Shooter" {:fixed  1
-                  :moving 2}
-   "MGT-MK1"     {:fixed  3
-                  :moving 4}
-   "Cannon"      {:fixed  0                                 ;Maybe leave as nil
-                  :moving 5}
-   "Snow Cannon" {:fixed  6
-                  :moving 7}})
+  {"Pea Shooter"   {:fixed  1
+                    :moving 2}
+   "MGT-MK1"       {:fixed  3
+                    :moving 4}
+   "Cannon"        {:fixed  0                               ;Maybe leave as nil
+                    :moving 5}
+   "Snow Cannon"   {:fixed  6
+                    :moving 7}
+   "Venom Spitter" {:fixed  8
+                    :moving 9}})
 
 (def projectile-sprite-definitions
   {"Pea Fast"   0
    "Pea Slow"   0
    "Cannonball" 1
-   "Snowball"   1})
+   "Snowball"   3
+   "Venom"      2})
 
 (def animation-definitions
-  {"Snowball"   {:start 0
-                 :count 4
-                 :interval 100}})
+  {"Snowball" {:start    0
+               :count    4
+               :interval 100}})
 
 (defn get-image
   [path]

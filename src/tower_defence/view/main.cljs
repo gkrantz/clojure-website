@@ -136,6 +136,7 @@
   (doseq [projectile (get-all-projectiles state)]
     (save ctx)
     (translate ctx (:x projectile) (:y projectile))
+    (rotate ctx (:angle projectile))
     (apply draw-image ctx (get-projectile-image-args! projectile))
     (restore ctx)))
 
@@ -176,7 +177,7 @@
   (draw-placement-helper-tower state ctx)
   (draw-image ctx menu-background 384 0)                    ;temp
   (buttons/draw-buttons! ctx)
-  (draw-selection! ctx 388 45)
+  (draw-selection! ctx 388 81)
   (draw-animations! ctx))
 
 (defn start-draw-loop!
@@ -268,8 +269,8 @@
                                      :draw-fn  (fn [ctx] (draw-image ctx start-wave 0 0 150 25 384 359 150 25))
                                      :on-click #(start-wave-button-pressed)})
   (doseq [[index [_ tower]] (map-indexed vector tower-definitions)]
-    (let [x (+ 388 (* 36 index))
-          y 6]
+    (let [x (+ 388 (* 36 (mod index 4)))
+          y (+ 6 (* 36 (int (/ index 4))))]
       (buttons/add-button! (str "build_" (:name tower)) {:x        x
                                                          :y        y
                                                          :width    32
@@ -281,29 +282,29 @@
                                                                                          (concat $ [x y 32 32])
                                                                                          (apply draw-image ctx $)))))})))
   (buttons/add-button! "first" {:x        387
-                                :y        100
+                                :y        136
                                 :width    36
                                 :height   11
                                 :on-click (fn [] (change-tower-priority! :first))
-                                :draw-fn  (get-priority-button-draw-fn! [priority-buttons 0 0 36 11 387 100 36 11] :first)})
+                                :draw-fn  (get-priority-button-draw-fn! [priority-buttons 0 0 36 11 387 136 36 11] :first)})
   (buttons/add-button! "last" {:x        423
-                               :y        100
+                               :y        136
                                :width    36
                                :height   11
                                :on-click (fn [] (change-tower-priority! :last))
-                               :draw-fn  (get-priority-button-draw-fn! [priority-buttons 36 0 36 11 423 100 36 11] :last)})
+                               :draw-fn  (get-priority-button-draw-fn! [priority-buttons 36 0 36 11 423 136 36 11] :last)})
   (buttons/add-button! "low-hp" {:x        459
-                                 :y        100
+                                 :y        136
                                  :width    36
                                  :height   11
                                  :on-click (fn [] (change-tower-priority! :low-hp))
-                                 :draw-fn  (get-priority-button-draw-fn! [priority-buttons 72 0 36 11 459 100 36 11] :low-hp)})
+                                 :draw-fn  (get-priority-button-draw-fn! [priority-buttons 72 0 36 11 459 136 36 11] :low-hp)})
   (buttons/add-button! "high-hp" {:x        495
-                                  :y        100
+                                  :y        136
                                   :width    36
                                   :height   11
                                   :on-click (fn [] (change-tower-priority! :high-hp))
-                                  :draw-fn  (get-priority-button-draw-fn! [priority-buttons 108 0 36 11 495 100 36 11] :high-hp)}))
+                                  :draw-fn  (get-priority-button-draw-fn! [priority-buttons 108 0 36 11 495 136 36 11] :high-hp)}))
 
 (defn start-game!
   []

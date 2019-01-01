@@ -429,6 +429,7 @@
                   (projectile-hit new-state projectile target definition)
                   (as-> (update projectile :x + dx) $
                         (update $ :y + dy)
+                        (assoc $ :angle angle)
                         (update-in new-state [:projectiles :single-target] (fn [old] (conj old $))))))))
           (assoc-in state [:projectiles :single-target] [])
           (get-in state [:projectiles :single-target])))
