@@ -2,7 +2,8 @@
   (:require [clojure.test :refer [is]]
             [tower-defence.game.definitions :refer [get-definition]]
             [tower-defence.game.pathfinding :refer [find-path]]
-            [tower-defence.game.helpers :refer [add-projectile
+            [tower-defence.game.helpers :refer [add-debuff
+                                                add-projectile
                                                 add-projectile-hit
                                                 calculate-angle
                                                 calculate-middle-of-square
@@ -401,12 +402,16 @@
       (add-waypoints-to-state)
       (set-phase :monster)))
 
-(defn single-target-projectile-hit
-  [state projectile]
-  (update-monster state (:target projectile) (fn [old]
-                                               (update old :damage-taken + (:damage projectile)))))
+(defn projectile-hit
+  "Any projectile type hits a monster."
+  [state projectile monster projectile-definition]
+  (as-> (damage-monster state (:id monster) (:damage projectile)) $
+        (if-not (nil? (:debuff projectile-definition))
+          (add-debuff $ (:id monster) (:debuff projectile-definition))
+          $)))
 
 (defn update-all-single-target-projectiles
+  "Update location of a single target projectile, check for collision."
   [state]
   (reduce (fn [new-state projectile]
             (let [definition (get-definition projectile)
@@ -418,7 +423,7 @@
               (if (nil? target)
                 new-state
                 (if (reached-target? projectile target)
-                  (single-target-projectile-hit new-state projectile)
+                  (projectile-hit new-state projectile target definition)
                   (as-> (update projectile :x + dx) $
                         (update $ :y + dy)
                         (update-in new-state [:projectiles :single-target] (fn [old] (conj old $))))))))
@@ -428,12 +433,12 @@
 (defn explosive-projectile-hit
   [state projectile]
   (let [definition (get-definition projectile)]
-        (reduce (fn [new-state monster]
-                  (if (<= (distance projectile monster) (:explosion-radius definition))
-                    (damage-monster new-state (:id monster) (:damage projectile))
-                    new-state))
-                (add-projectile-hit state projectile)
-                (get-monsters state))))
+    (reduce (fn [new-state monster]
+              (if (<= (distance projectile monster) (:explosion-radius definition))
+                (projectile-hit new-state projectile monster definition)
+                new-state))
+            (add-projectile-hit state projectile)
+            (get-monsters state))))
 
 (defn update-all-explosive-projectiles
   [state]
@@ -452,9 +457,9 @@
           (assoc-in state [:projectiles :explosive] [])
           (get-in state [:projectiles :explosive])))
 
-(defn attempt-rolling-projectile-hit
+(defn attempt-rolling-projectile-hits
   {:test (fn [] (is (= (-> (create-game {:monsters {"m1" (create-monster "Blob" :id "m1" :x 0 :y 0)}})
-                           (attempt-rolling-projectile-hit {:x 0 :y 0 :damage 30})
+                           (attempt-rolling-projectile-hits {:x 0 :y 0 :damage 30})
                            (first)
                            (get-monster "m1")
                            (:damage-taken))
@@ -463,7 +468,7 @@
   (reduce (fn [[new-state hit-set] monster]
             (if (and (not (contains? hit-set (:id monster)))
                      (collision? projectile 3 monster 16))
-              [(damage-monster state (:id monster) (:damage projectile))
+              [(projectile-hit new-state projectile monster (get-definition projectile))
                (conj hit-set (:id monster))]
               [new-state hit-set]))
           [state (or (:hits projectile) #{})]
@@ -479,7 +484,7 @@
                   dy (* speed (Math/sin angle))]
               (if-not (in-bounds? state (:x projectile) (:y projectile))
                 new-state
-                (let [[newer-state hit-list] (attempt-rolling-projectile-hit new-state projectile)]
+                (let [[newer-state hit-list] (attempt-rolling-projectile-hits new-state projectile)]
                   (as-> (update projectile :x + dx) $
                         (update $ :y + dy)
                         (assoc $ :hits hit-list)
@@ -492,3 +497,23 @@
   (-> (update-all-single-target-projectiles state)
       (update-all-rolling-projectiles)
       (update-all-explosive-projectiles)))
+
+(defn- update-monster-debuffs
+  [state monster]
+  (as-> (reduce (fn [debuff-timers name-and-time]
+                  (let [definition (get-definition (first name-and-time))]
+                    (if (>= (second name-and-time) (:duration definition))
+                      debuff-timers
+                      (assoc debuff-timers (first name-and-time) (+ MS_PER_TICK (second name-and-time))))))
+                {}
+                (:debuff-timers monster)) $
+        (update-monster state (:id monster) (fn [old] (assoc old :debuff-timers $)))))
+
+(defn update-all-monsters-debuffs
+  [state]
+  (reduce (fn [new-state monster]
+            (if (> (count (:debuff-timers monster)) 0)
+              (update-monster-debuffs new-state monster)
+              new-state))
+          state
+          (get-monsters state)))

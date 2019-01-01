@@ -10,6 +10,7 @@
                                              create-game
                                              move-all-monsters
                                              update-all-projectiles
+                                             update-all-monsters-debuffs
                                              remove-dead-monsters
                                              start-monster-phase]]
             [tower-defence.game.helpers :refer [clear-projectile-hits
@@ -50,6 +51,7 @@
           (-> $
               (all-towers-attempt-to-shoot)
               (update-all-projectiles)
+              (update-all-monsters-debuffs)
               (remove-dead-monsters)
               (move-all-monsters)
               (attempt-to-spawn-monsters)

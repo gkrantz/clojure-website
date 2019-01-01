@@ -22,8 +22,8 @@
    "Snow Cannon" {:name       "Snow Cannon"
                   :cost       200
                   :range      70
-                  :rate       5000
-                  :damage     100000
+                  :rate       2000
+                  :damage     10
                   :projectile "Snowball"}})
 
 (def projectile-definitions
@@ -35,4 +35,9 @@
                  :class :rolling}
    "Snowball"   {:speed            120
                  :class            :explosive
+                 :debuff           "Snowslow"
                  :explosion-radius 40}})
+
+(def debuff-definitions
+  {"Snowslow" {:speed    0.5
+               :duration 4000}})

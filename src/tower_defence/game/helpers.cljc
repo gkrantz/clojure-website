@@ -3,7 +3,7 @@
             [tower-defence.game.constants :refer [SQUARE_SIZE]]
             [clojure.test :refer [is]]))
 
-;; This namespace is for functions with low level of abstraction.
+;; This namespace is for functions with a low level of abstraction.
 
 (defn distance
   {:test (fn []
@@ -180,10 +180,22 @@
   (let [definition (get-definition (:name tower))]
     (:range definition)))
 
+(defn- get-speed-debuff-product
+  "Calculates the speed product of the debuffs of a monster."
+  [monster]
+  (reduce (fn [total-speed debuff-name]
+            (let [definition-speed (:speed (get-definition debuff-name))]
+              (if (nil? definition-speed)
+                total-speed
+                (* total-speed definition-speed))))
+          1 (keys (get monster :debuff-timers))))
+
 (defn get-speed
   [state id]
-  (let [definition (get-definition (:name (get-monster state id)))]
-    (:speed definition)))
+  (let [monster (get-monster state id)
+        monster-definition (get-definition monster)]
+    (-> (:speed monster-definition)
+        (* (get-speed-debuff-product monster)))))
 
 (defn get-x
   "Only supported for monsters for now."
@@ -288,3 +300,8 @@
 (defn add-projectile-hit
   [state projectile]
   (update-in state [:projectiles :hits-this-turn] conj projectile))
+
+(defn add-debuff
+  "Adds a debuff to a monster."
+  [state id debuff]
+  (assoc-in state [:monsters id :debuff-timers debuff] 0))
