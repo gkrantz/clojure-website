@@ -24,4 +24,4 @@
                                                          :data {:to   loc
                                                                 :from current-location}}))}
                   (str loc)])
-       ["Home" "Links" "Games"]))])
+       ["Home" "Game"]))])

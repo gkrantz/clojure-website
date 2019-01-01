@@ -1,7 +1,6 @@
 (ns my-website.core
   (:require [my-website.components.minimalistic-banner :as banner]
-            [my-website.components.login-form :as login-form]
-            [my-website.components.links :as links]
+            [my-website.components.home :as home]
             [my-website.events :refer [events]]
             [my-website.js-interops :refer [get-url-path]]
             [tower-defence.view.main :as tower-defence]
@@ -26,10 +25,10 @@
                   :justify-content "center"
                   :text-align      "center"}}
     (case (:location state)
-      "Home" (login-form/component)
-      "Links" (links/component)
-      "Games" [:div {:style {:display "inline-block"}}
-               (tower-defence/component)])]])
+      "Game" [:div {:style {:display "inline-block"}}
+               (tower-defence/component)]
+      [:div {:style {:display "inline-block"}}
+       (home/component)])]])
 
 (defn render! [state]
   (rum/mount (app state)
@@ -41,8 +40,7 @@
              (fn [_ _ _ state]
                (render! state)))
 
-  (reset! state-atom {:location      "Home"
-                      :tower-defence nil}))
+  (reset! state-atom {:location "Home"}))
 
 (defn on-js-reload []
   (render! (deref state-atom)))
