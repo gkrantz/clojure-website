@@ -26,8 +26,9 @@
                   :text-align      "center"}}
     (case (:location state)
       "Game" [:div {:style {:display "inline-block"}}
-               (tower-defence/component)]
-      [:div {:style {:display "inline-block"}}
+              (tower-defence/component)]
+      [:div {:style {:margin-top 60
+                     :display    "inline-block"}}
        (home/component)])]])
 
 (defn render! [state]

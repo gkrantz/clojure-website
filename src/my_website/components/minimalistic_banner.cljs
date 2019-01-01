@@ -4,7 +4,7 @@
 (rum/defc component
   "A minimalistic banner."
   [app-state trigger-event]
-  [:div {:style {:height          150
+  [:div {:style {:height          80
                  :width           "100%"
                  :align-items     "center"
                  :justify-content "center"
