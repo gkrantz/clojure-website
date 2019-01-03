@@ -6,31 +6,36 @@
                     :range      64
                     :rate       1500
                     :damage     10
-                    :projectile "Pea Slow"}
+                    :projectile "Pea Slow"
+                    :description "It shoots peas..."}
    "MGT-MK1"       {:name       "MGT-MK1"
                     :cost       50
                     :range      100
                     :rate       100
                     :damage     3
-                    :projectile "Pea Fast"}
+                    :projectile "Pea Fast"
+                    :description "Cheapest machine gun<br>tower on the market."}
    "Cannon"        {:name       "Cannon"
                     :cost       100
                     :range      100
                     :rate       3000
                     :damage     30
-                    :projectile "Cannonball"}
+                    :projectile "Cannonball"
+                    :description "Shoots unstoppable<br>cannonballs."}
    "Snow Cannon"   {:name       "Snow Cannon"
                     :cost       200
                     :range      70
                     :rate       2000
                     :damage     10
-                    :projectile "Snowball"}
+                    :projectile "Snowball"
+                    :description "Slows enemies that are<br>near the area of impact."}
    "Venom Spitter" {:name       "Venom Spitter"
                     :cost       200
                     :range      150
                     :rate       1000
                     :damage     10
-                    :projectile "Venom"}})
+                    :projectile "Venom"
+                    :description "Spits venom that slows<br>enemies."}})
 
 (def projectile-definitions
   {"Pea Slow"   {:speed 100

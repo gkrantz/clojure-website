@@ -305,3 +305,8 @@
   "Adds a debuff to a monster."
   [state id debuff]
   (assoc-in state [:monsters id :debuff-timers debuff] 0))
+
+(defn get-description
+  "Gets the description of from a definition."
+  [name-or-map]
+  (:description (get-definition name-or-map)))

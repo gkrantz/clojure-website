@@ -2,16 +2,20 @@
   (:require-macros
     [cljs.core.async.macros :refer [go go-loop alt!]])
   (:require [rum.core :as rum]
+            [clojure.string :refer [split]]
             [tower-defence.game.player-api :as game]
             [tower-defence.game.constants :as constants]
             [tower-defence.view.button-handler :as buttons]
-            [tower-defence.game.helpers :refer [get-all-projectiles
+            [tower-defence.game.helpers :refer [calculate-middle-of-square
+                                                create-tower
+                                                get-all-projectiles
                                                 pixel->square
                                                 get-tower
                                                 get-tower-at
                                                 get-towers
                                                 get-monsters
                                                 get-damage
+                                                get-description
                                                 get-range
                                                 get-rate]]
             [tower-defence.game.core :refer [can-build-tower?]]
@@ -20,6 +24,7 @@
                                                 get-monster-image-args!
                                                 get-projectile-image-args!
                                                 get-tower-image-args!]]
+            [tower-defence.game.definitions :refer [get-definition]]
             [tower-defence.game.definitions.towers :refer [tower-definitions]]
             [tower-defence.view.draw :refer [circle
                                              draw-chan
@@ -62,10 +67,6 @@
   []
   (deref game-atom))
 
-(defn selection!
-  []
-  (deref selection-atom))
-
 (defn draw-background
   [state ctx]
   (draw-image ctx image32x32 0 0 384 384))
@@ -85,33 +86,53 @@
   (doseq [tower (get-towers state)]
     (draw-tower ctx tower (:x tower) (:y tower))))
 
-(defn draw-tower-range
-  [state ctx tower]
-  (circle ctx (:x tower) (:y tower) (get-range state tower))
+(defn draw-range-indicator
+  [ctx x y range]
+  (circle ctx x y range)
   (set-global-alpha! ctx 0.3)
   (fill ctx 0 0 200)
   (set-global-alpha! ctx 1))
 
-(defn draw-tower-selection
-  [state ctx tower x y]
+(defn draw-tower-selection-stats
+  [ctx x y tower damage rate range description]
   (draw-image ctx image32x32 x y)
   (draw-tower ctx tower (+ x 16) (+ y 16))
   (set-font! ctx "bold 15px Arial")
   (draw-text ctx (:name tower) (+ x 40) (+ y 12))
   (set-font! ctx "15px Arial")
-  (draw-text ctx (str "Damage: " (get-damage state tower)) (+ x 40) (+ y 25))
-  (draw-text ctx (str "Fire rate: " (.toFixed (/ (get-rate state tower) 1000) 1) "s") (+ x 40) (+ y 38))
-  (draw-text ctx (str "Range: " (get-range state tower)) (+ x 40) (+ y 51))
-  (draw-tower-range state ctx tower))
+  (draw-text ctx (str "Damage: " damage) (+ x 40) (+ y 25))
+  (draw-text ctx (str "Fire rate: " (.toFixed (/ rate 1000) 1) "s") (+ x 40) (+ y 38))
+  (draw-text ctx (str "Range: " range) (+ x 40) (+ y 51))
+  (set-font! ctx "italic 15px Arial gray")
+  (doseq [[idx line] (map-indexed vector (split description "<br>"))] (draw-text ctx line x (+ y 64 (* idx 13)))))
+
+(defn draw-tower-selection
+  [ctx x y state tower]
+  (draw-tower-selection-stats ctx x y tower
+                              (get-damage state tower)
+                              (get-rate state tower)
+                              (get-range state tower)
+                              (get-description tower))
+  (draw-range-indicator ctx (:x tower) (:y tower) (get-range state tower)))
+
+(defn draw-blueprint-selection
+  [ctx x y name]
+  (let [definition (get-definition name)]
+    (draw-tower-selection-stats ctx x y
+                                (create-tower name [0 0])
+                                (:damage definition)
+                                (:rate definition)
+                                (:range definition)
+                                (:description definition))))
 
 (defn draw-selection!
   [ctx x y]
-  (let [selection (selection!)
+  (let [selection @selection-atom
         state @game-atom]
     (case (:type selection)
       nil nil
-      :blueprint nil
-      :tower (draw-tower-selection state ctx (get-tower state (:data selection)) x y))))
+      :blueprint (draw-blueprint-selection ctx x y (:data selection))
+      :tower (draw-tower-selection ctx x y state (get-tower state (:data selection))))))
 
 (defn draw-monsters
   [state ctx]
@@ -124,11 +145,14 @@
 
 (defn draw-placement-helper-tower
   [state ctx]
-  (let [{px :x py :y} (deref mouse-atom)
-        [x y] (pixel->square px py)]
-    (when (= (:type (selection!)) :blueprint)
+  (when (= (:type @selection-atom) :blueprint)
+    (let [{px :x py :y} (deref mouse-atom)
+          [sx sy] (pixel->square px py)
+          [px2 py2] (calculate-middle-of-square sx sy)
+          definition (get-definition (:data @selection-atom))]
       (set-global-alpha! ctx 0.5)
-      (draw-image ctx image32x32 (* 32 x) (* 32 y))
+      (draw-tower ctx definition px2 py2)
+      (draw-range-indicator ctx px2 py2 (:range definition))
       (set-global-alpha! ctx 1))))
 
 (defn draw-projectiles
@@ -177,7 +201,7 @@
   (draw-placement-helper-tower state ctx)
   (draw-image ctx menu-background 384 0)                    ;temp
   (buttons/draw-buttons! ctx)
-  (draw-selection! ctx 388 81)
+  (draw-selection! ctx 388 163)
   (draw-animations! ctx))
 
 (defn start-draw-loop!
@@ -220,7 +244,7 @@
 
 (defn mouse-pressed-on-square
   [x y]
-  (let [selection (selection!)]
+  (let [selection @selection-atom]
     (as-> (get-tower-at @game-atom x y) $
           (if (nil? $)
             (if (= (:type selection) :blueprint)
@@ -260,6 +284,15 @@
         (when (= priority (:priority tower))
           (apply fill-rect ctx "rgba(90,90,90,0.4)" (take-last 4 arg-list)))))))
 
+(defn- add-priority-button
+  [x y name type index]
+  (buttons/add-button! name {:x        (+ x (* 36 index))
+                             :y        y
+                             :width    36
+                             :height   11
+                             :on-click (fn [] (change-tower-priority! type))
+                             :draw-fn  (get-priority-button-draw-fn! [priority-buttons (* 36 index) 0 36 11 (+ x (* 36 index)) y 36 11] type)}))
+
 (defn add-menu-buttons!
   []
   (buttons/add-button! "start-game" {:x        384
@@ -270,7 +303,7 @@
                                      :on-click #(start-wave-button-pressed)})
   (doseq [[index [_ tower]] (map-indexed vector tower-definitions)]
     (let [x (+ 388 (* 36 (mod index 4)))
-          y (+ 6 (* 36 (int (/ index 4))))]
+          y (+ 43 (* 36 (int (/ index 4))))]
       (buttons/add-button! (str "build_" (:name tower)) {:x        x
                                                          :y        y
                                                          :width    32
@@ -281,30 +314,10 @@
                                                                                    (as-> (take 5 args) $
                                                                                          (concat $ [x y 32 32])
                                                                                          (apply draw-image ctx $)))))})))
-  (buttons/add-button! "first" {:x        387
-                                :y        136
-                                :width    36
-                                :height   11
-                                :on-click (fn [] (change-tower-priority! :first))
-                                :draw-fn  (get-priority-button-draw-fn! [priority-buttons 0 0 36 11 387 136 36 11] :first)})
-  (buttons/add-button! "last" {:x        423
-                               :y        136
-                               :width    36
-                               :height   11
-                               :on-click (fn [] (change-tower-priority! :last))
-                               :draw-fn  (get-priority-button-draw-fn! [priority-buttons 36 0 36 11 423 136 36 11] :last)})
-  (buttons/add-button! "low-hp" {:x        459
-                                 :y        136
-                                 :width    36
-                                 :height   11
-                                 :on-click (fn [] (change-tower-priority! :low-hp))
-                                 :draw-fn  (get-priority-button-draw-fn! [priority-buttons 72 0 36 11 459 136 36 11] :low-hp)})
-  (buttons/add-button! "high-hp" {:x        495
-                                  :y        136
-                                  :width    36
-                                  :height   11
-                                  :on-click (fn [] (change-tower-priority! :high-hp))
-                                  :draw-fn  (get-priority-button-draw-fn! [priority-buttons 108 0 36 11 495 136 36 11] :high-hp)}))
+  (add-priority-button 387 151 "first" :first 0)
+  (add-priority-button 387 151 "last" :last 1)
+  (add-priority-button 387 151 "low-hp" :low-hp 2)
+  (add-priority-button 387 151 "high-hp" :high-hp 3))
 
 (defn start-game!
   []
