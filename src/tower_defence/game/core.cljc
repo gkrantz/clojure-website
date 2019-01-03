@@ -3,8 +3,11 @@
             [tower-defence.game.definitions :refer [get-definition]]
             [tower-defence.game.pathfinding :refer [find-path]]
             [tower-defence.game.helpers :refer [add-debuff
+                                                add-gold
                                                 add-projectile
                                                 add-projectile-hit
+                                                add-tower-to-towers-built-this-phase
+                                                built-this-phase?
                                                 calculate-angle
                                                 calculate-middle-of-square
                                                 collision?
@@ -26,6 +29,7 @@
                                                 get-monsters
                                                 get-monster-ids
                                                 get-monster-wpt
+                                                get-total-cost-of-tower
                                                 get-tower
                                                 get-towers
                                                 get-range
@@ -44,7 +48,9 @@
                                                 set-phase
                                                 reached-target?
                                                 reduce-gold
+                                                remove-tower
                                                 reset-current-tick
+                                                reset-towers-built-this-phase
                                                 update-monster
                                                 update-tower]]
             [tower-defence.game.constants :refer [TICKS_PER_SECOND
@@ -52,23 +58,24 @@
 
 (defn create-empty-state
   []
-  {:width        12
-   :height       12
-   :start        [0 11]
-   :end          [11 0]
-   :gold         100
-   :lives        10
-   :phase        :build
-   :level        :test
-   :wave         {:name             "wave 0"
-                  :spawned-monsters {}
-                  :finished         false}
-   :current-tick 0
-   :counter      1
-   :towers       {}
-   :monsters     {}
-   :projectiles  {}
-   :waypoints    {}})
+  {:width                   12
+   :height                  12
+   :start                   [0 11]
+   :end                     [11 0]
+   :gold                    100
+   :lives                   10
+   :phase                   :build
+   :level                   :test
+   :wave                    {:name             "wave 0"
+                             :spawned-monsters {}
+                             :finished         false}
+   :current-tick            0
+   :counter                 1
+   :towers                  {}
+   :monsters                {}
+   :projectiles             {}
+   :waypoints               {}
+   :towers-built-this-phase #{}})
 
 (defn create-game
   ([]
@@ -127,9 +134,10 @@
                       (build-tower $ "Pea Shooter" [1 1])
                       (do (is (= (get-gold $) 90)))))}
   [state name [x y]]
-  (as-> (reduce-gold state (get-tower-cost name)) $
-        (let [[new_state id] (generate-id $ "t")]
-          (force-add-tower new_state (create-tower name [x y] :id id)))))
+  (let [[new_state id] (generate-id state "t")]
+    (-> (reduce-gold new_state (get-tower-cost name))
+        (force-add-tower (create-tower name [x y] :id id))
+        (add-tower-to-towers-built-this-phase id))))
 
 (defn- create-waypoint
   [fromx fromy [tox toy]]
@@ -403,6 +411,7 @@
   (-> (reset-tower-fire-timers state)
       (reset-current-tick)
       (add-waypoints-to-state)
+      (reset-towers-built-this-phase)
       (set-phase :monster)))
 
 (defn projectile-hit
@@ -463,7 +472,7 @@
 
 (defn attempt-rolling-projectile-hits
   {:test (fn [] (is (= (-> (create-game {:monsters {"m1" (create-monster "Blob" :id "m1" :x 0 :y 0)}})
-                           (attempt-rolling-projectile-hits {:x 0 :y 0 :damage 30})
+                           (attempt-rolling-projectile-hits {:x 0 :y 0 :damage 30 :name "Cannonball"})
                            (first)
                            (get-monster "m1")
                            (:damage-taken))
@@ -521,3 +530,42 @@
               new-state))
           state
           (get-monsters state)))
+
+(defn get-sell-price
+  "Gets the value of an already built tower."
+  [state tower]
+  (int (* (get-total-cost-of-tower (:name tower))
+          (if (built-this-phase? state (:id tower))
+            1
+            0.75))))
+
+(defn sell-tower
+  "Sells the given tower."
+  {:test (fn []
+           (is (= (as-> (create-game {:gold                    200
+                                      :towers-built-this-phase #{"t0"}
+                                      :towers                  {"t0" (create-tower "Snow Cannon" [0 0] :id "t0")}}) $
+                        (sell-tower $ (get-tower $ "t0"))
+                        [(get-tower $ "t0") (get-gold $)])
+                  [nil 400]))
+           (is (= (as-> (create-game {:gold   200
+                                      :towers {"t0" (create-tower "Snow Cannon" [0 0] :id "t0")}}) $
+                        (sell-tower $ (get-tower $ "t0"))
+                        [(get-tower $ "t0") (get-gold $)])
+                  [nil 350])))}
+  [state tower]
+  (-> (remove-tower state (:id tower))
+      (add-gold (get-sell-price state tower))))
+
+(defn upgrade-tower
+  "Upgrades a tower."
+  {:test (fn [] (is (= (as-> (create-game {:towers {"t0" (create-tower "Snow Cannon" [0 0] :id "t0")}}) $
+                             (upgrade-tower $ (get-tower $ "t0"))
+                             (get-tower $ "t0")
+                             (:name $))
+                       "Snow Cannon II")))}
+  [state tower]
+  (let [old-definition (get-definition tower)
+        new-definition (get-definition (:upgrade old-definition))]
+    (-> (reduce-gold state (:cost new-definition))
+        (update-in [:towers (:id tower) :name] (fn [_] (:name new-definition))))))

@@ -12,7 +12,9 @@
                                              update-all-projectiles
                                              update-all-monsters-debuffs
                                              remove-dead-monsters
-                                             start-monster-phase]]
+                                             start-monster-phase
+                                             sell-tower
+                                             upgrade-tower]]
             [tower-defence.game.helpers :refer [clear-projectile-hits
                                                 create-monster
                                                 create-tower
@@ -61,3 +63,11 @@
 (defn change-tower-priority
   [state id priority]
   (update-tower state id (fn [old] (assoc old :priority priority))))
+
+(defn sell-a-tower
+  [state tower]
+  (sell-tower state tower))
+
+(defn upgrade-a-tower
+  [state tower]
+  (upgrade-tower state tower))

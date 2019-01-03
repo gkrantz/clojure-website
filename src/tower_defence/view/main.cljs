@@ -6,7 +6,8 @@
             [tower-defence.game.player-api :as game]
             [tower-defence.game.constants :as constants]
             [tower-defence.view.button-handler :as buttons]
-            [tower-defence.game.helpers :refer [calculate-middle-of-square
+            [tower-defence.game.helpers :refer [built-this-phase?
+                                                calculate-middle-of-square
                                                 create-tower
                                                 get-all-projectiles
                                                 pixel->square
@@ -23,9 +24,11 @@
                                                 get-animation-image-args!
                                                 get-monster-image-args!
                                                 get-projectile-image-args!
-                                                get-tower-image-args!]]
+                                                get-tower-image-args!
+                                                get-sell-button-image-args!
+                                                get-upgrade-button-image-args!]]
             [tower-defence.game.definitions :refer [get-definition]]
-            [tower-defence.game.definitions.towers :refer [tower-definitions]]
+            [tower-defence.game.definitions.towers :refer [basic-tower-definitions]]
             [tower-defence.view.draw :refer [circle
                                              draw-chan
                                              draw-image
@@ -301,7 +304,7 @@
                                      :height   25
                                      :draw-fn  (fn [ctx] (draw-image ctx start-wave 0 0 150 25 384 359 150 25))
                                      :on-click #(start-wave-button-pressed)})
-  (doseq [[index [_ tower]] (map-indexed vector tower-definitions)]
+  (doseq [[index [_ tower]] (map-indexed vector basic-tower-definitions)]
     (let [x (+ 388 (* 36 (mod index 4)))
           y (+ 43 (* 36 (int (/ index 4))))]
       (buttons/add-button! (str "build_" (:name tower)) {:x        x
@@ -317,7 +320,49 @@
   (add-priority-button 387 151 "first" :first 0)
   (add-priority-button 387 151 "last" :last 1)
   (add-priority-button 387 151 "low-hp" :low-hp 2)
-  (add-priority-button 387 151 "high-hp" :high-hp 3))
+  (add-priority-button 387 151 "high-hp" :high-hp 3)
+  (let [x 388
+        y 258
+        width 72
+        height 30]
+    (buttons/add-button! "sell-tower" {:x        x
+                                       :y        y
+                                       :width    width
+                                       :height   height
+                                       :on-click (fn [] (let [selection @selection-atom]
+                                                          (when (= :tower (:type selection))
+                                                            (swap! game-atom (fn [old] (game/sell-a-tower old (get-tower old (:data selection)))))
+                                                            (select-something! nil nil))))
+                                       :draw-fn  (fn [ctx]
+                                                   (when (= :tower (:type @selection-atom))
+                                                     (as-> (built-this-phase? @game-atom (:data @selection-atom)) $
+                                                           (get-sell-button-image-args! $)
+                                                           (take 5 $)
+                                                           (concat $ [x y width height])
+                                                           (apply draw-image ctx $))))}))
+
+  (let [x 460
+        y 258
+        width 72
+        height 30]
+    (buttons/add-button! "upgrade-tower" {:x        x
+                                          :y        y
+                                          :width    width
+                                          :height   height
+                                          :on-click (fn [] (let [selection @selection-atom]
+                                                             (when (= :tower (:type selection))
+                                                               (swap! game-atom (fn [old] (game/upgrade-a-tower old (get-tower old (:data selection))))))))
+                                          :draw-fn  (fn [ctx]
+                                                      (when (= :tower (:type @selection-atom))
+                                                        (let [definition (get-definition (get-tower @game-atom (:data @selection-atom)))]
+                                                          (when-not (nil? (:upgrade definition))
+                                                            (let [cost (:cost (get-definition (:upgrade definition)))]
+                                                              (as-> (get-upgrade-button-image-args!) $
+                                                                    (take 5 $)
+                                                                    (concat $ [x y width height])
+                                                                    (apply draw-image ctx $))
+                                                              (set-font! ctx "bold 12px Arial")
+                                                              (draw-text ctx (str cost) (+ x 24) (+ y 24)))))))})))
 
 (defn start-game!
   []

@@ -86,7 +86,18 @@
   [state tower]
   (assoc-in state [:towers (:id tower)] tower))
 
+(defn remove-tower
+  "Removes a tower from the state."
+  [state id]
+  (update state :towers (fn [old] (dissoc old id))))
+
+(defn add-gold
+  "Adds to the player's gold."
+  [state amount]
+  (update state :gold (fn [old-value] (+ old-value amount))))
+
 (defn reduce-gold
+  "Removes from the player's gold."
   [state amount]
   (update state :gold (fn [old-value] (- old-value amount))))
 
@@ -310,3 +321,27 @@
   "Gets the description of from a definition."
   [name-or-map]
   (:description (get-definition name-or-map)))
+
+(defn reset-towers-built-this-phase
+  "Clears the set of towers built this phase."
+  [state]
+  (assoc state :towers-built-this-phase #{}))
+
+(defn built-this-phase?
+  "Clears the set of towers built this phase."
+  [state id]
+  (contains? (get state :towers-built-this-phase) id))
+
+(defn add-tower-to-towers-built-this-phase
+  "Marks that the given tower was built on the current phase."
+  [state id]
+  (update state :towers-built-this-phase (fn [old] (conj old id))))
+
+(defn get-total-cost-of-tower
+  "Gets total cost of a tower, including all upgrades."
+  [name]
+  (let [definition (get-definition name)]
+    (+ (:cost definition)
+       (if (nil? (:upgraded-from definition))
+         0
+         (get-total-cost-of-tower (:upgraded-from definition))))))

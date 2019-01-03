@@ -21,28 +21,37 @@
                  :interval 150}})
 
 (def tower-sprite-definitions
-  {"Pea Shooter"   {:fixed  1
-                    :moving 2}
-   "MGT-MK1"       {:fixed  3
-                    :moving 4}
-   "Cannon"        {:fixed  0                               ;Maybe leave as nil
-                    :moving 5}
-   "Snow Cannon"   {:fixed  6
-                    :moving 7}
-   "Venom Spitter" {:fixed  8
-                    :moving 9}})
+  {"Pea Shooter"      {:fixed  1
+                       :moving 2}
+   "MGT-MK1"          {:fixed  3
+                       :moving 4}
+   "Cannon"           {:fixed  0                            ;Maybe leave as nil
+                       :moving 5}
+   "Snow Cannon"      {:fixed  6
+                       :moving 7}
+   "Snow Cannon II"   {:fixed  6
+                       :moving 7}
+   "Venom Spitter"    {:fixed  8
+                       :moving 9}
+   "Venom Spitter II" {:fixed  8
+                       :moving 9}})
 
 (def projectile-sprite-definitions
-  {"Pea Fast"   0
-   "Pea Slow"   0
-   "Cannonball" 1
-   "Snowball"   3
-   "Venom"      2})
+  {"Pea Fast"    0
+   "Pea Slow"    0
+   "Cannonball"  1
+   "Snowball"    3
+   "Snowball II" 3
+   "Venom"       2
+   "Venom II"    2})
 
 (def animation-definitions
-  {"Snowball" {:start    0
-               :count    4
-               :interval 100}})
+  {"Snowball"    {:start    0
+                  :count    4
+                  :interval 100}
+   "Snowball II" {:start    0
+                  :count    4
+                  :interval 100}})
 
 (defn get-image
   [path]
@@ -54,6 +63,7 @@
 (def tower-sprite-sheet (get-image "images/tower-defence/tower-sprite-sheet.png"))
 (def projectile-sprite-sheet (get-image "images/tower-defence/projectile-sprite-sheet.png"))
 (def animation-sprite-sheet (get-image "images/tower-defence/animation-sprite-sheet.png"))
+(def sell-upgrade-sprite-sheet (get-image "images/tower-defence/sell-upgrade-sprite-sheet.png"))
 
 (def frame-atom (atom {}))
 
@@ -98,3 +108,12 @@
           (when (< $ (:count sprite-def))
             (as-> (+ $ (:start sprite-def)) $
                   [animation-sprite-sheet (cell->x $) (cell->y $) 32 32 -16 -16 32 32])))))
+
+(defn get-sell-button-image-args!
+  [full-price?]
+  (as-> (if full-price? 0 72) $
+        [sell-upgrade-sprite-sheet $ 0 72 30 0 0 72 30]))
+
+(defn get-upgrade-button-image-args!
+  []
+  [sell-upgrade-sprite-sheet 144 0 72 30 0 0 72 30])
