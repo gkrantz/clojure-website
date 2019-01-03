@@ -16,6 +16,7 @@
                                                 get-towers
                                                 get-monsters
                                                 get-damage
+                                                get-damage-dealt
                                                 get-description
                                                 get-range
                                                 get-rate]]
@@ -97,17 +98,18 @@
   (set-global-alpha! ctx 1))
 
 (defn draw-tower-selection-stats
-  [ctx x y tower damage rate range description]
+  [ctx x y tower damage rate range damage-dealt description]
   (draw-image ctx image32x32 x y)
   (draw-tower ctx tower (+ x 16) (+ y 16))
   (set-font! ctx "bold 15px Arial")
-  (draw-text ctx (:name tower) (+ x 40) (+ y 12))
+  (draw-text ctx (:name tower) (+ x 35) (+ y 12))
   (set-font! ctx "15px Arial")
-  (draw-text ctx (str "Damage: " damage) (+ x 40) (+ y 25))
-  (draw-text ctx (str "Fire rate: " (.toFixed (/ rate 1000) 1) "s") (+ x 40) (+ y 38))
-  (draw-text ctx (str "Range: " range) (+ x 40) (+ y 51))
+  (draw-text ctx (str "Damage: " damage) (+ x 35) (+ y 25))
+  (draw-text ctx (str "Fire rate: " (.toFixed (/ rate 1000) 1) "s") (+ x 35) (+ y 38))
+  (draw-text ctx (str "Range: " range) x (+ y 51))
+  (draw-text ctx (str "Total dmg: " damage-dealt) x (+ y 64)) ; Might need to format this
   (set-font! ctx "italic 15px Arial gray")
-  (doseq [[idx line] (map-indexed vector (split description "<br>"))] (draw-text ctx line x (+ y 64 (* idx 13)))))
+  (doseq [[idx line] (map-indexed vector (split description "<br>"))] (draw-text ctx line x (+ y 77 (* idx 13)))))
 
 (defn draw-tower-selection
   [ctx x y state tower]
@@ -115,6 +117,7 @@
                               (get-damage state tower)
                               (get-rate state tower)
                               (get-range state tower)
+                              (get-damage-dealt tower)
                               (get-description tower))
   (draw-range-indicator ctx (:x tower) (:y tower) (get-range state tower)))
 
@@ -126,6 +129,7 @@
                                 (:damage definition)
                                 (:rate definition)
                                 (:range definition)
+                                0
                                 (:description definition))))
 
 (defn draw-selection!

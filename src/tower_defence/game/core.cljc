@@ -2,7 +2,8 @@
   (:require [clojure.test :refer [is]]
             [tower-defence.game.definitions :refer [get-definition]]
             [tower-defence.game.pathfinding :refer [find-path]]
-            [tower-defence.game.helpers :refer [add-debuff
+            [tower-defence.game.helpers :refer [add-damage-dealt
+                                                add-debuff
                                                 add-gold
                                                 add-projectile
                                                 add-projectile-hit
@@ -304,7 +305,8 @@
            :target (case (:class definition)
                      :explosive (select-keys target [:x :y])
                      :rolling (calculate-angle (:x tower) (:y tower) (:x target) (:y target))
-                     :single-target (:id target))} $
+                     :single-target (:id target))
+           :owner  (:id tower)} $
           (add-projectile state (:class definition) $)
           (update-tower $ (:id tower) (fn [old] (assoc old :fired-at (:current-tick state)))))))
 
@@ -418,6 +420,7 @@
   "Any projectile type hits a monster."
   [state projectile monster projectile-definition]
   (as-> (damage-monster state (:id monster) (:damage projectile)) $
+        (add-damage-dealt $ (:owner projectile) (:damage projectile))
         (if-not (nil? (:debuff projectile-definition))
           (add-debuff $ (:id monster) (:debuff projectile-definition))
           $)))

@@ -118,21 +118,23 @@
 (defn create-tower
   "Creates a tower given a name."
   {:test (fn [] (is (= (create-tower "Pea Shooter" [1 0])
-                       {:name     "Pea Shooter"
-                        :fired-at 0
-                        :angle    0
-                        :x        48.0
-                        :y        16.0
-                        :square   [1 0]
-                        :priority :first})))}
+                       {:name         "Pea Shooter"
+                        :fired-at     0
+                        :angle        0
+                        :x            48.0
+                        :y            16.0
+                        :square       [1 0]
+                        :priority     :first
+                        :damage-dealt 0})))}
   [name [x y] & kvs]
-  (let [tower {:name     name
-               :fired-at 0
-               :angle    0
-               :x        (calculate-middle-of-square x)
-               :y        (calculate-middle-of-square y)
-               :square   [x y]
-               :priority :first}]
+  (let [tower {:name         name
+               :fired-at     0
+               :angle        0
+               :x            (calculate-middle-of-square x)
+               :y            (calculate-middle-of-square y)
+               :square       [x y]
+               :priority     :first
+               :damage-dealt 0}]
     (if (empty? kvs)
       tower
       (apply assoc tower kvs))))
@@ -345,3 +347,13 @@
        (if (nil? (:upgraded-from definition))
          0
          (get-total-cost-of-tower (:upgraded-from definition))))))
+
+(defn add-damage-dealt
+  "Adds damage to a tower's damage counter."
+  [state id damage]
+  (update-in state [:towers id :damage-dealt] + damage))
+
+(defn get-damage-dealt
+  "Gets the total amount of damage a tower has dealt."
+  [tower]
+  (get tower :damage-dealt))
